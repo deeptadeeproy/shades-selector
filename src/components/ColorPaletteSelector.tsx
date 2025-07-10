@@ -97,7 +97,7 @@ export const ColorPaletteSelector: React.FC = () => {
             {/* Page heading and subtext above controls only */}
             <div className="mb-6">
               <h1 className="text-2xl font-bold mb-2" style={{ color: palette.text }}>
-                Shades for us
+                Shadecard
               </h1>
               <p className="text-sm" style={{ color: palette['text-muted'] }}>
                 Adjust the Sliders and toggle theme to create your perfect color palette.
