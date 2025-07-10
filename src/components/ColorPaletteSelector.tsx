@@ -7,12 +7,12 @@ import { ColorPickerModal } from './ColorPickerModal';
 import { Button } from './ui/button';
 import { generateColorPalette, type ColorConfig } from '../utils/colorUtils';
 
-type ColorFormat = 'oklch' | 'hsl' | 'rgba' | 'hex';
+type ColorFormat = 'oklch' | 'hsl' | 'rgb' | 'hex';
 
 export const ColorPaletteSelector: React.FC = () => {
   const [config, setConfig] = useState<ColorConfig>({
-    hue: 200,
-    chroma: 0.1,
+    hue: 265,
+    chroma: 0.0,
     isLight: false,
   });
 
@@ -97,7 +97,7 @@ export const ColorPaletteSelector: React.FC = () => {
             {/* Page heading and subtext above controls only */}
             <div className="mb-6">
               <h1 className="text-2xl font-bold mb-2" style={{ color: palette.text }}>
-                Shades For Us
+                Shades for us
               </h1>
               <p className="text-sm" style={{ color: palette['text-muted'] }}>
                 Adjust the Sliders and toggle theme to create your perfect color palette.
@@ -143,6 +143,7 @@ export const ColorPaletteSelector: React.FC = () => {
         isOpen={isAlertsModalOpen}
         onClose={() => setIsAlertsModalOpen(false)}
         palette={palette}
+        currentFormat={paletteFormat}
       />
       <ColorPickerModal
         isOpen={isColorPickerOpen}

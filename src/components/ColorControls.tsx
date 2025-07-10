@@ -27,16 +27,26 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
   };
 
   const handleHueInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value);
-    if (!isNaN(value) && value >= 0 && value <= 360) {
-      onConfigChange({ ...config, hue: value });
+    const value = e.target.value;
+    if (value === '') {
+      onConfigChange({ ...config, hue: 0 });
+    } else {
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue) && numValue >= 0 && numValue <= 360) {
+        onConfigChange({ ...config, hue: numValue });
+      }
     }
   };
 
   const handleChromaInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value);
-    if (!isNaN(value) && value >= 0 && value <= 0.4) {
-      onConfigChange({ ...config, chroma: value });
+    const value = e.target.value;
+    if (value === '') {
+      onConfigChange({ ...config, chroma: 0 });
+    } else {
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue) && numValue >= 0 && numValue <= 0.4) {
+        onConfigChange({ ...config, chroma: numValue });
+      }
     }
   };
 
@@ -116,7 +126,7 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
               <div className="flex items-center space-x-2">
                 <Input
                   type="number"
-                  value={Math.round(config.hue)}
+                  value={config.hue === 0 ? '' : Math.round(config.hue)}
                   onChange={handleHueInputChange}
                   min={0}
                   max={360}
@@ -147,7 +157,7 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
               <div className="flex items-center space-x-2">
                 <Input
                   type="number"
-                  value={config.chroma.toFixed(2)}
+                  value={config.chroma === 0 ? '' : config.chroma.toFixed(2)}
                   onChange={handleChromaInputChange}
                   min={0}
                   max={0.4}

@@ -10,7 +10,7 @@ interface ColorPaletteDisplayProps {
   onFormatChange?: (format: ColorFormat) => void;
 }
 
-type ColorFormat = 'oklch' | 'hsl' | 'rgba' | 'hex';
+type ColorFormat = 'oklch' | 'hsl' | 'rgb' | 'hex';
 
 export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palette, onFormatChange }) => {
   const [format, setFormat] = useState<ColorFormat>('oklch');
@@ -23,7 +23,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
   const formatOptions = [
     { value: 'oklch', label: 'OKLCH' },
     { value: 'hsl', label: 'HSL' },
-    { value: 'rgba', label: 'RGBA' },
+    { value: 'rgb', label: 'RGB' },
     { value: 'hex', label: 'HEX' },
   ];
 
@@ -46,7 +46,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
     switch (format) {
       case 'hsl':
         return oklchToHsl(oklchValue);
-      case 'rgba':
+      case 'rgb':
         return oklchToRgba(oklchValue);
       case 'hex':
         return oklchToHex(oklchValue);

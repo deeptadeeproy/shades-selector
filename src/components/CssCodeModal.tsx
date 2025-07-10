@@ -9,10 +9,10 @@ interface CssCodeModalProps {
   isOpen: boolean;
   onClose: () => void;
   palette: ColorPalette;
-  currentFormat?: 'oklch' | 'hsl' | 'rgba' | 'hex';
+  currentFormat?: 'oklch' | 'hsl' | 'rgb' | 'hex';
 }
 
-type ColorFormat = 'oklch' | 'hsl' | 'rgba' | 'hex';
+type ColorFormat = 'oklch' | 'hsl' | 'rgb' | 'hex';
 
 export const CssCodeModal: React.FC<CssCodeModalProps> = ({ isOpen, onClose, palette, currentFormat = 'oklch' }) => {
   const [copied, setCopied] = useState(false);
@@ -26,7 +26,7 @@ export const CssCodeModal: React.FC<CssCodeModalProps> = ({ isOpen, onClose, pal
   const formatOptions = [
     { value: 'oklch', label: 'OKLCH' },
     { value: 'hsl', label: 'HSL' },
-    { value: 'rgba', label: 'RGBA' },
+    { value: 'rgb', label: 'RGB' },
     { value: 'hex', label: 'HEX' },
   ];
 
@@ -49,7 +49,7 @@ export const CssCodeModal: React.FC<CssCodeModalProps> = ({ isOpen, onClose, pal
     switch (format) {
       case 'hsl':
         return oklchToHsl(oklchValue);
-      case 'rgba':
+      case 'rgb':
         return oklchToRgba(oklchValue);
       case 'hex':
         return oklchToHex(oklchValue);

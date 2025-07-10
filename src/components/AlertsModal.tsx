@@ -1,14 +1,31 @@
 import React from 'react';
 import { Modal } from './ui/modal';
 import type { ColorPalette } from '../utils/colorUtils';
+import { oklchStringToHex, oklchStringToRgba, oklchStringToHsl } from '../utils/oklchConversions';
+
+type ColorFormat = 'oklch' | 'hsl' | 'rgb' | 'hex';
 
 interface AlertsModalProps {
   isOpen: boolean;
   onClose: () => void;
   palette: ColorPalette;
+  currentFormat?: ColorFormat;
 }
 
-export const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, palette }) => {
+export const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, palette, currentFormat = 'oklch' }) => {
+  const convertColor = (oklchValue: string): string => {
+    switch (currentFormat) {
+      case 'hsl':
+        return oklchStringToHsl(oklchValue);
+      case 'rgb':
+        return oklchStringToRgba(oklchValue);
+      case 'hex':
+        return oklchStringToHex(oklchValue);
+      default:
+        return oklchValue;
+    }
+  };
+
   const alerts = [
     {
       type: 'success',
@@ -96,7 +113,7 @@ export const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, palet
                 />
                 <span style={{ color: 'var(--text-muted)' }}>{alert.type}:</span>
                 <code className="font-mono" style={{ color: 'var(--text-muted)' }}>
-                  {alert.color}
+                  {convertColor(alert.color)}
                 </code>
               </div>
             ))}
