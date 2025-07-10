@@ -30,22 +30,6 @@ export interface ColorConfig {
   isLight: boolean; // theme mode
 }
 
-// Convert OKLCH to hex
-function oklchToHex(l: number, c: number, h: number): string {
-  // Simple OKLCH to RGB conversion (for demo purposes)
-  // In a real implementation, you'd use a proper color conversion library
-  const hueRad = (h * Math.PI) / 180;
-  const a = c * Math.cos(hueRad);
-  const b = c * Math.sin(hueRad);
-  
-  // Convert to RGB (simplified)
-  const r = Math.round(255 * Math.max(0, Math.min(1, l + 1.13983 * a + 0.39465 * b)));
-  const g = Math.round(255 * Math.max(0, Math.min(1, l - 0.58060 * a + 0.80511 * b)));
-  const b_val = Math.round(255 * Math.max(0, Math.min(1, l - 0.80511 * a - 0.80511 * b)));
-  
-  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b_val.toString(16).padStart(2, '0')}`;
-}
-
 // Convert OKLCH to RGB values
 function oklchToRgb(l: number, c: number, h: number): { r: number; g: number; b: number } {
   const hueRad = (h * Math.PI) / 180;
