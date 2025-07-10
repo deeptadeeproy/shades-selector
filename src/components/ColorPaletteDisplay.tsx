@@ -3,6 +3,7 @@ import type { ColorPalette } from '../utils/colorUtils';
 import { ColorSwatch } from './ColorSwatch';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Dropdown } from './ui/dropdown';
+import { oklchStringToHex, oklchStringToRgba, oklchStringToHsl } from '../utils/oklchConversions';
 
 interface ColorPaletteDisplayProps {
   palette: ColorPalette;
@@ -26,54 +27,19 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
     { value: 'hex', label: 'HEX' },
   ];
 
-  // Convert OKLCH to HSL (simplified conversion)
+  // Convert OKLCH to HSL using accurate conversion
   const oklchToHsl = (oklchValue: string): string => {
-    const match = oklchValue.match(/oklch\(([^)]+)\)/);
-    if (!match) return oklchValue;
-    
-    const [l, c, h] = match[1].split(' ').map(Number);
-    
-    const lightness = Math.round(l * 100);
-    const saturation = Math.round(c * 100);
-    const hue = Math.round(h);
-    
-    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    return oklchStringToHsl(oklchValue);
   };
 
-  // Convert OKLCH to RGBA (simplified conversion)
+  // Convert OKLCH to RGBA using accurate conversion
   const oklchToRgba = (oklchValue: string): string => {
-    const match = oklchValue.match(/oklch\(([^)]+)\)/);
-    if (!match) return oklchValue;
-    
-    const [l, c, h] = match[1].split(' ').map(Number);
-    
-    const hueRad = (h * Math.PI) / 180;
-    const a = c * Math.cos(hueRad);
-    const b = c * Math.sin(hueRad);
-    
-    const r = Math.round(255 * Math.max(0, Math.min(1, l + 1.13983 * a + 0.39465 * b)));
-    const g = Math.round(255 * Math.max(0, Math.min(1, l - 0.58060 * a + 0.80511 * b)));
-    const b_val = Math.round(255 * Math.max(0, Math.min(1, l - 0.80511 * a - 0.80511 * b)));
-    
-    return `rgba(${r}, ${g}, ${b_val}, 1)`;
+    return oklchStringToRgba(oklchValue);
   };
 
-  // Convert OKLCH to Hex
+  // Convert OKLCH to Hex using accurate conversion
   const oklchToHex = (oklchValue: string): string => {
-    const match = oklchValue.match(/oklch\(([^)]+)\)/);
-    if (!match) return oklchValue;
-    
-    const [l, c, h] = match[1].split(' ').map(Number);
-    
-    const hueRad = (h * Math.PI) / 180;
-    const a = c * Math.cos(hueRad);
-    const b = c * Math.sin(hueRad);
-    
-    const r = Math.round(255 * Math.max(0, Math.min(1, l + 1.13983 * a + 0.39465 * b)));
-    const g = Math.round(255 * Math.max(0, Math.min(1, l - 0.58060 * a + 0.80511 * b)));
-    const b_val = Math.round(255 * Math.max(0, Math.min(1, l - 0.80511 * a - 0.80511 * b)));
-    
-    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b_val.toString(16).padStart(2, '0')}`;
+    return oklchStringToHex(oklchValue);
   };
 
   const convertColor = (oklchValue: string): string => {

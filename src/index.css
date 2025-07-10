@@ -19,12 +19,12 @@
   /* Specific styling for our custom buttons */
   .inline-flex.items-center.justify-center {
     border-radius: 8px !important;
-  }
-  
+}
+
   /* Theme toggle specific styling - preserve pill shape */
   button[style*="borderRadius: '50px !important'"] {
     border-radius: 50px !important;
-  }
+}
 }
 
 /* Custom scrollbar for code blocks */

@@ -30,22 +30,17 @@ export interface ColorConfig {
   isLight: boolean; // theme mode
 }
 
+import { oklchToRgba } from './oklchConversions';
+
 // Convert OKLCH to RGB values
 function oklchToRgb(l: number, c: number, h: number): { r: number; g: number; b: number } {
-  const hueRad = (h * Math.PI) / 180;
-  const a = c * Math.cos(hueRad);
-  const b = c * Math.sin(hueRad);
-  
-  const r = Math.round(255 * Math.max(0, Math.min(1, l + 1.13983 * a + 0.39465 * b)));
-  const g = Math.round(255 * Math.max(0, Math.min(1, l - 0.58060 * a + 0.80511 * b)));
-  const b_val = Math.round(255 * Math.max(0, Math.min(1, l - 0.80511 * a - 0.80511 * b)));
-  
-  return { r, g, b: b_val };
+  const rgba = oklchToRgba({ l, c, h, a: 1 });
+  return { r: rgba.r, g: rgba.g, b: rgba.b };
 }
 
 // Generate OKLCH color
 function generateOklchColor(l: number, c: number, h: number): string {
-  return `oklch(${l} ${c} ${h})`;
+  return `oklch(${l * 100}% ${c} ${h})`;
 }
 
 // Generate OKLCH color with RGB fallback
