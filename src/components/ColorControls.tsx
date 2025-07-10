@@ -5,13 +5,15 @@ import { Slider } from './ui/slider';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
 
 interface ColorControlsProps {
   config: ColorConfig;
   onConfigChange: (config: ColorConfig) => void;
+  onColorPickerOpen: () => void;
 }
 
-export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigChange }) => {
+export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigChange, onColorPickerOpen }) => {
   const handleHueChange = (value: number[]) => {
     onConfigChange({ ...config, hue: value[0] });
   };
@@ -45,10 +47,10 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
           <CardTitle>Color Controls</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Theme Toggle */}
+          {/* Theme Toggle and Color Picker */}
           <div className="space-y-3">
             <Label>Theme Mode</Label>
-            <div className="flex items-center">
+            <div className="flex items-center justify-between">
               <button
                 onClick={handleThemeToggle}
                 className="theme-toggle relative inline-flex h-6 w-11 items-center transition-colors"
@@ -77,6 +79,21 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
                   )}
                 </span>
               </button>
+              
+              <Button
+                onClick={onColorPickerOpen}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="13.5" cy="6.5" r=".5"/>
+                  <circle cx="17.5" cy="10.5" r=".5"/>
+                  <circle cx="8.5" cy="7.5" r=".5"/>
+                  <circle cx="6.5" cy="12.5" r=".5"/>
+                  <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+                </svg>
+                Pick Color
+              </Button>
             </div>
           </div>
 

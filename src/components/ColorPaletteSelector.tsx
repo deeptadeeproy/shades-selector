@@ -3,6 +3,7 @@ import { ColorControls } from './ColorControls';
 import { ColorPaletteDisplay } from './ColorPaletteDisplay';
 import { CssCodeModal } from './CssCodeModal';
 import { AlertsModal } from './AlertsModal';
+import { ColorPickerModal } from './ColorPickerModal';
 import { Button } from './ui/button';
 import { generateColorPalette, type ColorConfig } from '../utils/colorUtils';
 
@@ -17,6 +18,7 @@ export const ColorPaletteSelector: React.FC = () => {
 
   const [isCssModalOpen, setIsCssModalOpen] = useState(false);
   const [isAlertsModalOpen, setIsAlertsModalOpen] = useState(false);
+  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [paletteFormat, setPaletteFormat] = useState<ColorFormat>('oklch');
 
   const palette = generateColorPalette(config);
@@ -73,7 +75,11 @@ export const ColorPaletteSelector: React.FC = () => {
               </p>
             </div>
             
-            <ColorControls config={config} onConfigChange={setConfig} />
+            <ColorControls 
+              config={config} 
+              onConfigChange={setConfig} 
+              onColorPickerOpen={() => setIsColorPickerOpen(true)}
+            />
 
             {/* Action Buttons */}
             <div className="mt-6 flex space-x-3">
@@ -105,6 +111,13 @@ export const ColorPaletteSelector: React.FC = () => {
       <AlertsModal 
         isOpen={isAlertsModalOpen}
         onClose={() => setIsAlertsModalOpen(false)}
+        palette={palette}
+      />
+      <ColorPickerModal
+        isOpen={isColorPickerOpen}
+        onClose={() => setIsColorPickerOpen(false)}
+        onColorSelect={setConfig}
+        currentConfig={config}
         palette={palette}
       />
     </div>

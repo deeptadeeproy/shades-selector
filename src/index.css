@@ -53,3 +53,28 @@
   height: 24px !important;
   padding: 0 !important;
 }
+
+/* Color picker styling */
+input[type="color"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: none;
+  cursor: pointer;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border-radius: 8px;
+  border: none;
+}
+
+input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 8px;
+}
+
+input[type="color"]::-moz-color-swatch {
+  border: none;
+  border-radius: 8px;
+}

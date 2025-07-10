@@ -6,9 +6,10 @@ interface ModalProps {
   onClose: () => void;
   children: React.ReactNode;
   className?: string;
+  backgroundColor?: string;
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, className }) => {
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, className, backgroundColor }) => {
   if (!isOpen) return null;
 
   return (
@@ -23,7 +24,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, classNa
           className
         )}
         style={{
-          backgroundColor: 'rgba(var(--bg-rgb, 0, 0, 0), 0.95)',
+          backgroundColor: backgroundColor || 'rgba(var(--bg-rgb, 0, 0, 0), 0.95)',
           color: 'var(--text)',
           border: '1px solid rgba(var(--border-rgb, 0, 0, 0), 0.2)',
           backdropFilter: 'blur(16px)',
