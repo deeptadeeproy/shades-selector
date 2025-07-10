@@ -54,17 +54,46 @@ export const ColorPaletteSelector: React.FC = () => {
   return (
     <div className="min-h-screen p-6 flex items-center justify-center" style={{ backgroundColor: config.isLight ? palette['bg-light'] : palette['bg-dark'] }}>
       <div className="max-w-7xl mx-auto w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* Color Palette Display - Left Side */}
           <div className="lg:col-span-2">
             <ColorPaletteDisplay 
               palette={palette} 
               onFormatChange={setPaletteFormat}
             />
+            <div className="mt-4 text-center">
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                Made with ❤️ by{' '}
+                <a 
+                  href="https://droyfolio.vercel.app" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-text hover:to-text transition-colors duration-200 inline-flex items-center gap-1 font-semibold"
+                  style={{ 
+                    color: 'var(--text-muted)',
+                    '--tw-text-opacity': '1',
+                    textShadow: '0 0 8px rgba(var(--text-rgb, 0, 0, 0), 0.3)'
+                  } as React.CSSProperties}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = 'var(--text)';
+                    e.currentTarget.style.textShadow = '0 0 12px rgba(var(--text-rgb, 0, 0, 0), 0.5)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'var(--text-muted)';
+                    e.currentTarget.style.textShadow = '0 0 8px rgba(var(--text-rgb, 0, 0, 0), 0.3)';
+                  }}
+                >
+                  Deeptadeep Roy
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                    <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                  </svg>
+                </a>
+              </p>
+            </div>
           </div>
           
           {/* Controls - Right Side with heading above */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 flex flex-col">
             {/* Page heading and subtext above controls only */}
             <div className="mb-6">
               <h1 className="text-2xl font-bold mb-2" style={{ color: palette.text }}>
@@ -75,27 +104,29 @@ export const ColorPaletteSelector: React.FC = () => {
               </p>
             </div>
             
-            <ColorControls 
-              config={config} 
-              onConfigChange={setConfig} 
-              onColorPickerOpen={() => setIsColorPickerOpen(true)}
-            />
+            <div className="flex flex-col">
+              <ColorControls 
+                config={config} 
+                onConfigChange={setConfig} 
+                onColorPickerOpen={() => setIsColorPickerOpen(true)}
+              />
 
-            {/* Action Buttons */}
-            <div className="mt-6 flex space-x-3">
-              <Button 
-                onClick={() => setIsCssModalOpen(true)}
-                className="flex-1"
-              >
-                See Code
-              </Button>
-              <Button 
-                onClick={() => setIsAlertsModalOpen(true)}
-                variant="secondary"
-                className="flex-1"
-              >
-                Alerts
-              </Button>
+              {/* Action Buttons */}
+              <div className="flex space-x-3 mt-4">
+                <Button 
+                  onClick={() => setIsCssModalOpen(true)}
+                  className="flex-1"
+                >
+                  See Code
+                </Button>
+                <Button 
+                  onClick={() => setIsAlertsModalOpen(true)}
+                  variant="secondary"
+                  className="flex-1"
+                >
+                  Alerts
+                </Button>
+              </div>
             </div>
           </div>
         </div>

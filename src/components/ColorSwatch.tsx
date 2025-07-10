@@ -52,7 +52,7 @@ export const ColorSwatch: React.FC<ColorSwatchProps> = ({ name, color, className
         )}
       </div>
       <div className="text-center">
-        <p className="text-xs font-medium" style={{ color: 'var(--text)' }}>{name}</p>
+        <p className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>{name}</p>
       </div>
     </div>
   );

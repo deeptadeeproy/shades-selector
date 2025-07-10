@@ -1,15 +1,18 @@
 import * as React from "react"
 import { cn } from "../../lib/utils"
 
+import type { ColorPalette } from '../../utils/colorUtils';
+
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
   className?: string;
   backgroundColor?: string;
+  palette?: ColorPalette;
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, className, backgroundColor }) => {
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, className, backgroundColor, palette }) => {
   if (!isOpen) return null;
 
   return (
@@ -24,7 +27,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, classNa
           className
         )}
         style={{
-          backgroundColor: backgroundColor || 'rgba(var(--bg-rgb, 0, 0, 0), 0.95)',
+          backgroundColor: backgroundColor || (palette ? palette.bg : 'rgba(var(--bg-rgb, 0, 0, 0), 0.95)'),
           color: 'var(--text)',
           border: '1px solid rgba(var(--border-rgb, 0, 0, 0), 0.2)',
           backdropFilter: 'blur(16px)',

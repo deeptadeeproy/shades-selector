@@ -41,7 +41,7 @@ export const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, palet
   ];
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} palette={palette}>
       <div className="p-6">
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text)' }}>
@@ -56,17 +56,13 @@ export const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, palet
           {alerts.map((alert) => (
             <div 
               key={alert.type}
-              className="p-4 rounded-lg border-l-4 flex items-start space-x-3"
-              style={{
-                backgroundColor: 'rgba(var(--bg-light-rgb, 255, 255, 255), 0.1)',
-                borderLeftColor: alert.color,
-              }}
+              className="p-4 rounded-lg flex items-start space-x-3"
             >
               <div
                 className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold"
                 style={{
                   backgroundColor: alert.color,
-                  color: 'var(--bg-light)',
+                  color: palette['bg-light'],
                 }}
               >
                 {alert.icon}
@@ -89,7 +85,7 @@ export const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, palet
           ))}
         </div>
 
-        <div className="mt-6 p-4 rounded-lg" style={{ backgroundColor: 'rgba(var(--border-rgb, 0, 0, 0), 0.1)' }}>
+        <div className="mt-6 p-4 rounded-lg">
           <h4 className="font-medium mb-2" style={{ color: 'var(--text)' }}>Color Values:</h4>
           <div className="grid grid-cols-2 gap-2 text-xs">
             {alerts.map((alert) => (
@@ -99,7 +95,7 @@ export const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, palet
                   style={{ backgroundColor: alert.color, borderColor: 'var(--border)' }}
                 />
                 <span style={{ color: 'var(--text-muted)' }}>{alert.type}:</span>
-                <code className="font-mono" style={{ color: 'var(--text)' }}>
+                <code className="font-mono" style={{ color: 'var(--text-muted)' }}>
                   {alert.color}
                 </code>
               </div>

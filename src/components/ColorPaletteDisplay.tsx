@@ -125,7 +125,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
           {/* Row 1: Background and Text side by side */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>Background</h3>
+              <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-muted)' }}>Background</h3>
               <div className="flex flex-wrap gap-4">
                 {colorCategories[0].colors.map((colorItem) => (
                   <ColorSwatch
@@ -138,7 +138,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
               </div>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>Text</h3>
+              <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-muted)' }}>Text</h3>
               <div className="flex flex-wrap gap-4">
                 {colorCategories[1].colors.map((colorItem) => (
                   <ColorSwatch
@@ -155,7 +155,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
           {/* Row 2: Border and Action side by side */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>Border</h3>
+              <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-muted)' }}>Border</h3>
               <div className="flex flex-wrap gap-4">
                 {colorCategories[2].colors.map((colorItem) => (
                   <ColorSwatch
@@ -168,7 +168,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
               </div>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>Action</h3>
+              <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-muted)' }}>Action</h3>
               <div className="flex flex-wrap gap-4">
                 {colorCategories[3].colors.map((colorItem) => (
                   <ColorSwatch
@@ -184,7 +184,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
 
           {/* Row 3: Alert (full width) */}
           <div>
-            <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>Alert</h3>
+            <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-muted)' }}>Alert</h3>
             <div className="flex flex-wrap gap-4">
               {colorCategories[4].colors.map((colorItem) => (
                 <ColorSwatch

@@ -94,7 +94,7 @@ ${cssVars}
   const cssCode = generateCssCode();
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="max-w-4xl">
+    <Modal isOpen={isOpen} onClose={onClose} className="max-w-4xl" palette={palette}>
       <div className="p-6">
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text)' }}>
@@ -127,8 +127,7 @@ ${cssVars}
             <pre 
               className="p-4 rounded-lg text-sm overflow-x-auto max-h-96 custom-scrollbar"
               style={{
-                backgroundColor: 'rgba(var(--bg-dark-rgb, 0, 0, 0), 0.1)',
-                color: 'var(--text)',
+                color: 'var(--text-muted)',
                 scrollbarWidth: 'thin',
                 scrollbarColor: 'var(--border) transparent',
               }}

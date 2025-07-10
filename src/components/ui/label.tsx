@@ -15,7 +15,7 @@ const Label = React.forwardRef<
   <LabelPrimitive.Root
     ref={ref}
     className={cn(labelVariants(), className)}
-    style={{ color: 'var(--text)' }}
+    style={{ color: 'var(--text-muted)' }}
     {...props}
   />
 ))

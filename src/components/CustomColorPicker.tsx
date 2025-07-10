@@ -67,20 +67,10 @@ export const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ value, onC
                  {showCustomInput && (
            <div className="flex items-center gap-2 justify-end">
              <input
-               type="color"
-               value={customColor}
-               onChange={handleCustomColorChange}
-               className="w-8 h-8 rounded-lg cursor-pointer border-0 flex-shrink-0"
-               style={{
-                 backgroundColor: customColor,
-                 borderRadius: '8px',
-               }}
-             />
-             <input
                type="text"
                value={customColor}
                onChange={(e) => handleCustomColorChange({ target: { value: e.target.value } } as any)}
-               className="px-3 py-1 text-sm font-mono rounded-lg focus:outline-none w-24"
+               className="px-3 h-8 text-sm font-mono rounded-lg focus:outline-none w-24"
                style={{
                  backgroundColor: 'var(--bg)',
                  color: 'var(--text)',
@@ -88,6 +78,16 @@ export const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ value, onC
                  borderRadius: '8px',
                }}
                placeholder="#000000"
+             />
+             <input
+               type="color"
+               value={customColor}
+               onChange={handleCustomColorChange}
+               className="w-8 h-8 rounded-full cursor-pointer border-0 flex-shrink-0"
+               style={{
+                 backgroundColor: customColor,
+                 borderRadius: '50%',
+               }}
              />
            </div>
          )}
