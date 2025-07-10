@@ -15,17 +15,7 @@ Shades is a powerful color palette generator that helps you create beautiful, ac
 
 ## Getting Started
 
-### 1. Choose Your Base Color
-
-Start by selecting your primary color using the color picker. This will be the foundation of your entire palette.
-
-![Color Controls](src/assets/screenshots/color-controls.png)
-
-- **Hue Slider**: Adjust the color hue (0-360 degrees)
-- **Chroma Slider**: Control color saturation (0-0.4)
-- **Theme Toggle**: Switch between light and dark themes
-
-### 2. Explore Your Palette
+### 1. Explore Your Palette
 
 Your generated palette includes colors for various design needs:
 
@@ -54,6 +44,16 @@ Your generated palette includes colors for various design needs:
 - `warning`: Caution messages
 - `success`: Success confirmations
 - `info`: Informational messages
+
+### 2. Choose Your Base Color
+
+Start by selecting your primary color using the color picker. This will be the foundation of your entire palette.
+
+![Color Controls](src/assets/screenshots/color-controls.png)
+
+- **Hue Slider**: Adjust the color hue (0-360 degrees)
+- **Chroma Slider**: Control color saturation (0-0.4)
+- **Theme Toggle**: Switch between light and dark themes
 
 ### 3. Export Your Colors
 
