@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+}
+
+@layer components {
+  /* Ensure buttons have rounded corners */
+  button {
+    border-radius: 8px !important;
+  }
+  
+  /* Specific styling for our custom buttons */
+  .inline-flex.items-center.justify-center {
+    border-radius: 8px !important;
+  }
+}
