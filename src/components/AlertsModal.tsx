@@ -54,13 +54,12 @@ export const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, palet
 
         <div className="space-y-4">
           {alerts.map((alert) => (
-            <div
+            <div 
               key={alert.type}
               className="p-4 rounded-lg border-l-4 flex items-start space-x-3"
               style={{
                 backgroundColor: 'rgba(var(--bg-light-rgb, 255, 255, 255), 0.1)',
                 borderLeftColor: alert.color,
-                border: '1px solid var(--border)',
               }}
             >
               <div

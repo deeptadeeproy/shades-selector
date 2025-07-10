@@ -161,38 +161,39 @@ ${cssVars}
               </Button>
             </div>
           </div>
-          <pre 
-            className="p-4 rounded-lg text-sm overflow-x-auto max-h-96 custom-scrollbar"
-            style={{
-              backgroundColor: 'rgba(var(--bg-dark-rgb, 0, 0, 0), 0.1)',
-              border: '1px solid var(--border)',
-              color: 'var(--text)',
-              scrollbarWidth: 'thin',
-              scrollbarColor: 'var(--border) transparent',
-            }}
-          >
-            <style>{`
-              .custom-scrollbar::-webkit-scrollbar {
-                width: 8px;
-                height: 8px;
-              }
-              .custom-scrollbar::-webkit-scrollbar-track {
-                background: transparent;
-                border-radius: 4px;
-              }
-              .custom-scrollbar::-webkit-scrollbar-thumb {
-                background: var(--border);
-                border-radius: 4px;
-              }
-              .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                background: var(--text-muted);
-              }
-              .custom-scrollbar::-webkit-scrollbar-corner {
-                background: transparent;
-              }
-            `}</style>
-            <code>{cssCode}</code>
-          </pre>
+          <div className="mt-4">
+            <pre 
+              className="p-4 rounded-lg text-sm overflow-x-auto max-h-96 custom-scrollbar"
+              style={{
+                backgroundColor: 'rgba(var(--bg-dark-rgb, 0, 0, 0), 0.1)',
+                color: 'var(--text)',
+                scrollbarWidth: 'thin',
+                scrollbarColor: 'var(--border) transparent',
+              }}
+            >
+              <style>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                  width: 8px;
+                  height: 8px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                  background: transparent;
+                  border-radius: 4px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                  background: var(--border);
+                  border-radius: 4px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                  background: var(--text-muted);
+                }
+                .custom-scrollbar::-webkit-scrollbar-corner {
+                  background: transparent;
+                }
+              `}</style>
+              <code>{cssCode}</code>
+            </pre>
+          </div>
         </div>
 
         <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
