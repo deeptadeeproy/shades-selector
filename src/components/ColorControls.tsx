@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { ColorConfig } from '../utils/colorUtils';
 import { createHueGradient, createChromaGradient } from '../utils/colorUtils';
 import { Slider } from './ui/slider';
@@ -14,6 +14,11 @@ interface ColorControlsProps {
 }
 
 export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigChange, onColorPickerOpen }) => {
+  const [isEditingHue, setIsEditingHue] = useState(false);
+  const [isEditingChroma, setIsEditingChroma] = useState(false);
+  const [hueInputValue, setHueInputValue] = useState('');
+  const [chromaInputValue, setChromaInputValue] = useState('');
+
   const handleHueChange = (value: number[]) => {
     onConfigChange({ ...config, hue: value[0] });
   };
@@ -28,6 +33,14 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
 
   const handleHueInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    
+    // Limit to 3 digits (excluding decimal point)
+    const digitsOnly = value.replace(/[^\d]/g, '');
+    if (digitsOnly.length > 3) {
+      return; // Don't update if more than 3 digits
+    }
+    
+    setHueInputValue(value);
     if (value === '') {
       onConfigChange({ ...config, hue: 0 });
     } else {
@@ -40,6 +53,14 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
 
   const handleChromaInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    
+    // Limit to 3 digits (excluding decimal point)
+    const digitsOnly = value.replace(/[^\d]/g, '');
+    if (digitsOnly.length > 3) {
+      return; // Don't update if more than 3 digits
+    }
+    
+    setChromaInputValue(value);
     if (value === '') {
       onConfigChange({ ...config, chroma: 0 });
     } else {
@@ -48,6 +69,43 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
         onConfigChange({ ...config, chroma: numValue });
       }
     }
+  };
+
+  const handleHueFocus = () => {
+    setIsEditingHue(true);
+    setHueInputValue(config.hue === 0 ? '0' : Math.round(config.hue).toString());
+  };
+
+  const handleHueBlur = () => {
+    setIsEditingHue(false);
+    setHueInputValue('');
+  };
+
+  const handleChromaFocus = () => {
+    setIsEditingChroma(true);
+    setChromaInputValue(config.chroma === 0 ? '0' : config.chroma.toString());
+  };
+
+  const handleChromaBlur = () => {
+    setIsEditingChroma(false);
+    setChromaInputValue('');
+  };
+
+  // Display logic: use input value when editing, otherwise show formatted value
+  const getHueDisplayValue = () => {
+    if (isEditingHue) {
+      return hueInputValue;
+    }
+    return config.hue === 0 ? '0' : Math.round(config.hue).toString();
+  };
+
+  const getChromaDisplayValue = () => {
+    if (isEditingChroma) {
+      return chromaInputValue;
+    }
+    if (config.chroma === 0) return '0';
+    // Show only necessary decimal places (e.g., 0.1 instead of 0.10)
+    return config.chroma.toString();
   };
 
   return (
@@ -126,8 +184,10 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
               <div className="flex items-center space-x-2">
                 <Input
                   type="number"
-                  value={config.hue === 0 ? '' : Math.round(config.hue)}
+                  value={getHueDisplayValue()}
                   onChange={handleHueInputChange}
+                  onFocus={handleHueFocus}
+                  onBlur={handleHueBlur}
                   min={0}
                   max={360}
                   step={1}
@@ -157,8 +217,10 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
               <div className="flex items-center space-x-2">
                 <Input
                   type="number"
-                  value={config.chroma === 0 ? '' : config.chroma.toFixed(2)}
+                  value={getChromaDisplayValue()}
                   onChange={handleChromaInputChange}
+                  onFocus={handleChromaFocus}
+                  onBlur={handleChromaBlur}
                   min={0}
                   max={0.4}
                   step={0.01}
