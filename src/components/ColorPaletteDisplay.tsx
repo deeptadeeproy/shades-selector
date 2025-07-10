@@ -1,13 +1,102 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { ColorPalette } from '../utils/colorUtils';
 import { ColorSwatch } from './ColorSwatch';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Dropdown } from './ui/dropdown';
 
 interface ColorPaletteDisplayProps {
   palette: ColorPalette;
+  onFormatChange?: (format: ColorFormat) => void;
 }
 
-export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palette }) => {
+type ColorFormat = 'oklch' | 'hsl' | 'rgba' | 'hex';
+
+export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palette, onFormatChange }) => {
+  const [format, setFormat] = useState<ColorFormat>('oklch');
+
+  const handleFormatChange = (newFormat: ColorFormat) => {
+    setFormat(newFormat);
+    onFormatChange?.(newFormat);
+  };
+
+  const formatOptions = [
+    { value: 'oklch', label: 'OKLCH' },
+    { value: 'hsl', label: 'HSL' },
+    { value: 'rgba', label: 'RGBA' },
+    { value: 'hex', label: 'HEX' },
+  ];
+
+  // Convert OKLCH to HSL (simplified conversion)
+  const oklchToHsl = (oklchValue: string): string => {
+    const match = oklchValue.match(/oklch\(([^)]+)\)/);
+    if (!match) return oklchValue;
+    
+    const [l, c, h] = match[1].split(' ').map(Number);
+    
+    const lightness = Math.round(l * 100);
+    const saturation = Math.round(c * 100);
+    const hue = Math.round(h);
+    
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+  };
+
+  // Convert OKLCH to RGBA (simplified conversion)
+  const oklchToRgba = (oklchValue: string): string => {
+    const match = oklchValue.match(/oklch\(([^)]+)\)/);
+    if (!match) return oklchValue;
+    
+    const [l, c, h] = match[1].split(' ').map(Number);
+    
+    const hueRad = (h * Math.PI) / 180;
+    const a = c * Math.cos(hueRad);
+    const b = c * Math.sin(hueRad);
+    
+    const r = Math.round(255 * Math.max(0, Math.min(1, l + 1.13983 * a + 0.39465 * b)));
+    const g = Math.round(255 * Math.max(0, Math.min(1, l - 0.58060 * a + 0.80511 * b)));
+    const b_val = Math.round(255 * Math.max(0, Math.min(1, l - 0.80511 * a - 0.80511 * b)));
+    
+    return `rgba(${r}, ${g}, ${b_val}, 1)`;
+  };
+
+  // Convert OKLCH to Hex
+  const oklchToHex = (oklchValue: string): string => {
+    const match = oklchValue.match(/oklch\(([^)]+)\)/);
+    if (!match) return oklchValue;
+    
+    const [l, c, h] = match[1].split(' ').map(Number);
+    
+    const hueRad = (h * Math.PI) / 180;
+    const a = c * Math.cos(hueRad);
+    const b = c * Math.sin(hueRad);
+    
+    const r = Math.round(255 * Math.max(0, Math.min(1, l + 1.13983 * a + 0.39465 * b)));
+    const g = Math.round(255 * Math.max(0, Math.min(1, l - 0.58060 * a + 0.80511 * b)));
+    const b_val = Math.round(255 * Math.max(0, Math.min(1, l - 0.80511 * a - 0.80511 * b)));
+    
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b_val.toString(16).padStart(2, '0')}`;
+  };
+
+  const convertColor = (oklchValue: string): string => {
+    switch (format) {
+      case 'hsl':
+        return oklchToHsl(oklchValue);
+      case 'rgba':
+        return oklchToRgba(oklchValue);
+      case 'hex':
+        return oklchToHex(oklchValue);
+      default:
+        return oklchValue;
+    }
+  };
+
+  const handleCopyColor = async (colorValue: string) => {
+    try {
+      await navigator.clipboard.writeText(convertColor(colorValue));
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+    }
+  };
+
   const colorCategories = [
     {
       title: 'Background',
@@ -53,7 +142,17 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Color Palette</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Color Palette</CardTitle>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>Export Style:</span>
+            <Dropdown
+              value={format}
+              onChange={(value) => handleFormatChange(value as ColorFormat)}
+              options={formatOptions}
+            />
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-8">
@@ -67,6 +166,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
                     key={colorItem.name}
                     name={colorItem.name}
                     color={colorItem.color}
+                    onCopy={() => handleCopyColor(colorItem.color)}
                   />
                 ))}
               </div>
@@ -79,6 +179,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
                     key={colorItem.name}
                     name={colorItem.name}
                     color={colorItem.color}
+                    onCopy={() => handleCopyColor(colorItem.color)}
                   />
                 ))}
               </div>
@@ -95,6 +196,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
                     key={colorItem.name}
                     name={colorItem.name}
                     color={colorItem.color}
+                    onCopy={() => handleCopyColor(colorItem.color)}
                   />
                 ))}
               </div>
@@ -107,6 +209,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
                     key={colorItem.name}
                     name={colorItem.name}
                     color={colorItem.color}
+                    onCopy={() => handleCopyColor(colorItem.color)}
                   />
                 ))}
               </div>
@@ -122,6 +225,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
                   key={colorItem.name}
                   name={colorItem.name}
                   color={colorItem.color}
+                  onCopy={() => handleCopyColor(colorItem.color)}
                 />
               ))}
             </div>

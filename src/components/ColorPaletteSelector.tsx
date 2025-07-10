@@ -6,6 +6,8 @@ import { AlertsModal } from './AlertsModal';
 import { Button } from './ui/button';
 import { generateColorPalette, type ColorConfig } from '../utils/colorUtils';
 
+type ColorFormat = 'oklch' | 'hsl' | 'rgba' | 'hex';
+
 export const ColorPaletteSelector: React.FC = () => {
   const [config, setConfig] = useState<ColorConfig>({
     hue: 200,
@@ -15,6 +17,7 @@ export const ColorPaletteSelector: React.FC = () => {
 
   const [isCssModalOpen, setIsCssModalOpen] = useState(false);
   const [isAlertsModalOpen, setIsAlertsModalOpen] = useState(false);
+  const [paletteFormat, setPaletteFormat] = useState<ColorFormat>('oklch');
 
   const palette = generateColorPalette(config);
 
@@ -36,6 +39,12 @@ export const ColorPaletteSelector: React.FC = () => {
     root.style.setProperty('--bg-rgb', bgRgb);
     root.style.setProperty('--border-rgb', borderRgb);
 
+    // Set card border based on theme mode
+    const cardBorder = config.isLight 
+      ? '1px solid rgba(var(--border-rgb, 102, 102, 102), 0.2)' 
+      : '1px solid rgba(var(--border-rgb, 204, 204, 204), 0.2)';
+    root.style.setProperty('--card-border', cardBorder);
+
     // Set theme class on body
     document.body.classList.toggle('light', config.isLight);
   }, [palette, config.isLight, config.hue, config.chroma]);
@@ -46,7 +55,10 @@ export const ColorPaletteSelector: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Color Palette Display - Left Side */}
           <div className="lg:col-span-2">
-            <ColorPaletteDisplay palette={palette} />
+            <ColorPaletteDisplay 
+              palette={palette} 
+              onFormatChange={setPaletteFormat}
+            />
           </div>
           
           {/* Controls - Right Side with heading above */}
@@ -54,10 +66,10 @@ export const ColorPaletteSelector: React.FC = () => {
             {/* Page heading and subtext above controls only */}
             <div className="mb-6">
               <h1 className="text-2xl font-bold mb-2" style={{ color: palette.text }}>
-                Shades Selector
+                Shades by Deeptadeep
               </h1>
               <p className="text-sm" style={{ color: palette['text-muted'] }}>
-                Adjust the OKLCH sliders and toggle theme to create your perfect color palette.
+                Adjust the Sliders and toggle theme to create your perfect color palette.
               </p>
             </div>
             
@@ -88,6 +100,7 @@ export const ColorPaletteSelector: React.FC = () => {
         isOpen={isCssModalOpen}
         onClose={() => setIsCssModalOpen(false)}
         palette={palette}
+        currentFormat={paletteFormat}
       />
       <AlertsModal 
         isOpen={isAlertsModalOpen}

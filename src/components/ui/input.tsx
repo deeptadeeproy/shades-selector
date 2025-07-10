@@ -17,6 +17,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           backgroundColor: 'var(--bg-light)',
           color: 'var(--text)',
           borderColor: 'var(--border)',
+          borderRadius: '8px',
           '--ring': 'var(--primary)',
           '--muted-foreground': 'var(--text-muted)',
         } as React.CSSProperties}

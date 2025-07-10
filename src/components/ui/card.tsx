@@ -8,15 +8,13 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-xl shadow-lg backdrop-blur-md",
+      "rounded-xl shadow-lg",
       className
     )}
     style={{
-      backgroundColor: 'rgba(var(--bg-rgb, 0, 0, 0), 0.8)',
+      backgroundColor: 'var(--bg)',
       color: 'var(--text)',
-      border: '1px solid rgba(var(--border-rgb, 0, 0, 0), 0.1)',
-      backdropFilter: 'blur(12px)',
-      WebkitBackdropFilter: 'blur(12px)',
+      border: 'var(--card-border, none)',
     }}
     {...props}
   />

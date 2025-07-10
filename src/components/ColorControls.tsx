@@ -48,25 +48,35 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
           {/* Theme Toggle */}
           <div className="space-y-3">
             <Label>Theme Mode</Label>
-            <div className="flex items-center justify-between">
-              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Dark</span>
+            <div className="flex items-center">
               <button
                 onClick={handleThemeToggle}
-                className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                className="theme-toggle relative inline-flex h-6 w-11 items-center transition-colors"
                 style={{
                   backgroundColor: config.isLight ? 'var(--primary)' : 'var(--border)',
                 }}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full transition-transform ${
+                  className={`inline-block h-4 w-4 transform transition-transform flex items-center justify-center ${
                     config.isLight ? 'translate-x-6' : 'translate-x-1'
                   }`}
                   style={{
                     backgroundColor: 'var(--bg-light)',
+                    borderRadius: '50%',
                   }}
-                />
+                >
+                  {config.isLight ? (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="5"/>
+                      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                  ) : (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                  )}
+                </span>
               </button>
-              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Light</span>
             </div>
           </div>
 

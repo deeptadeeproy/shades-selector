@@ -20,4 +20,36 @@
   .inline-flex.items-center.justify-center {
     border-radius: 8px !important;
   }
+  
+  /* Theme toggle specific styling - preserve pill shape */
+  button[style*="borderRadius: '50px !important'"] {
+    border-radius: 50px !important;
+  }
+}
+
+/* Custom scrollbar for code blocks */
+.code-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.code-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.code-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.code-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Theme toggle pill shape override */
+.theme-toggle {
+  border-radius: 50px !important;
+  min-width: 44px !important;
+  height: 24px !important;
+  padding: 0 !important;
 }
