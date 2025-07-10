@@ -82,7 +82,7 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
 
           {/* Hue Control */}
           <div className="space-y-3">
-            <Label htmlFor="hue-slider">Hue (0-360°)</Label>
+            <Label htmlFor="hue-slider">Hue</Label>
             <div className="space-y-2">
               <Slider
                 id="hue-slider"
@@ -113,7 +113,7 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
 
           {/* Chroma Control */}
           <div className="space-y-3">
-            <Label htmlFor="chroma-slider">Chroma (0-0.4)</Label>
+            <Label htmlFor="chroma-slider">Chroma</Label>
             <div className="space-y-2">
               <Slider
                 id="chroma-slider"
