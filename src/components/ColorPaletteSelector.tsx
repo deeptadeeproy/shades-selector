@@ -55,7 +55,7 @@ export const ColorPaletteSelector: React.FC = () => {
     <div className="min-h-screen p-6 flex items-center justify-center" style={{ backgroundColor: config.isLight ? palette['bg-light'] : palette['bg-dark'] }}>
       <div className="max-w-7xl mx-auto w-full">
         {/* Mobile heading - shown only on mobile */}
-        <div className="lg:hidden mb-6 text-center">
+        <div className="lg:hidden mb-6">
           <h1 className="text-3xl font-bold mb-2" style={{ color: palette.text }}>
             Shadecard
           </h1>
