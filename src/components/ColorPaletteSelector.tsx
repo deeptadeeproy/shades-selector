@@ -54,6 +54,13 @@ export const ColorPaletteSelector: React.FC = () => {
   return (
     <div className="min-h-screen p-6 flex items-center justify-center" style={{ backgroundColor: config.isLight ? palette['bg-light'] : palette['bg-dark'] }}>
       <div className="max-w-7xl mx-auto w-full">
+        {/* Mobile heading - shown only on mobile */}
+        <div className="lg:hidden mb-6 text-center">
+          <h1 className="text-3xl font-bold mb-2" style={{ color: palette.text }}>
+            Shadecard
+          </h1>
+        </div>
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* Color Palette Display - Left Side */}
           <div className="lg:col-span-2">
@@ -61,7 +68,8 @@ export const ColorPaletteSelector: React.FC = () => {
               palette={palette} 
               onFormatChange={setPaletteFormat}
             />
-            <div className="mt-4 text-center">
+            {/* Made with love - shown only on desktop below color palette */}
+            <div className="hidden lg:block mt-4 text-center">
               <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
                 Made with ❤️ by{' '}
                 <a 
@@ -94,8 +102,8 @@ export const ColorPaletteSelector: React.FC = () => {
           
           {/* Controls - Right Side with heading above */}
           <div className="lg:col-span-1 flex flex-col">
-            {/* Page heading and subtext above controls only */}
-            <div className="mb-6">
+            {/* Page heading and subtext above controls only - hidden on mobile */}
+            <div className="hidden lg:block mb-6">
               <h1 className="text-3xl font-bold mb-2" style={{ color: palette.text }}>
                 Shadecard
               </h1>
@@ -126,6 +134,37 @@ export const ColorPaletteSelector: React.FC = () => {
                 >
                   Alerts
                 </Button>
+              </div>
+
+              {/* Made with love - shown only on mobile below buttons */}
+              <div className="lg:hidden mt-6 text-center">
+                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                  Made with ❤️ by{' '}
+                  <a 
+                    href="https://droyfolio.vercel.app" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-text hover:to-text transition-colors duration-200 inline-flex items-center gap-1 font-semibold"
+                    style={{ 
+                      color: 'var(--text-muted)',
+                      '--tw-text-opacity': '1',
+                      textShadow: '0 0 8px rgba(var(--text-rgb, 0, 0, 0), 0.3)'
+                    } as React.CSSProperties}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = 'var(--text)';
+                      e.currentTarget.style.textShadow = '0 0 12px rgba(var(--text-rgb, 0, 0, 0), 0.5)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = 'var(--text-muted)';
+                      e.currentTarget.style.textShadow = '0 0 8px rgba(var(--text-rgb, 0, 0, 0), 0.3)';
+                    }}
+                  >
+                    Deeptadeep Roy
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                    </svg>
+                  </a>
+                </p>
               </div>
             </div>
           </div>

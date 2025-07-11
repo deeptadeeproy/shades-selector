@@ -109,7 +109,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Color Palette</CardTitle>
+          <CardTitle>Palette</CardTitle>
           <div className="flex items-center space-x-2">
             <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>Format:</span>
             <Dropdown
