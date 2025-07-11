@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import type { ColorPalette } from '../utils/colorUtils';
 import { ColorSwatch } from './ColorSwatch';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -12,37 +12,35 @@ interface ColorPaletteDisplayProps {
 
 type ColorFormat = 'oklch' | 'hsl' | 'rgb' | 'hex';
 
-export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palette, onFormatChange }) => {
+export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = React.memo(({ palette, onFormatChange }) => {
   const [format, setFormat] = useState<ColorFormat>('oklch');
 
-  const handleFormatChange = (newFormat: ColorFormat) => {
+  const handleFormatChange = useCallback((newFormat: ColorFormat) => {
     setFormat(newFormat);
     onFormatChange?.(newFormat);
-  };
+  }, [onFormatChange]);
 
-  const formatOptions = [
+  const formatOptions = useMemo(() => [
     { value: 'oklch', label: 'OKLCH' },
     { value: 'hsl', label: 'HSL' },
     { value: 'rgb', label: 'RGB' },
     { value: 'hex', label: 'HEX' },
-  ];
+  ], []);
 
-  // Convert OKLCH to HSL using accurate conversion
-  const oklchToHsl = (oklchValue: string): string => {
+  // Memoized conversion functions
+  const oklchToHsl = useCallback((oklchValue: string): string => {
     return oklchStringToHsl(oklchValue);
-  };
+  }, []);
 
-  // Convert OKLCH to RGBA using accurate conversion
-  const oklchToRgba = (oklchValue: string): string => {
+  const oklchToRgba = useCallback((oklchValue: string): string => {
     return oklchStringToRgba(oklchValue);
-  };
+  }, []);
 
-  // Convert OKLCH to Hex using accurate conversion
-  const oklchToHex = (oklchValue: string): string => {
+  const oklchToHex = useCallback((oklchValue: string): string => {
     return oklchStringToHex(oklchValue);
-  };
+  }, []);
 
-  const convertColor = (oklchValue: string): string => {
+  const convertColor = useCallback((oklchValue: string): string => {
     switch (format) {
       case 'hsl':
         return oklchToHsl(oklchValue);
@@ -53,17 +51,18 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
       default:
         return oklchValue;
     }
-  };
+  }, [format, oklchToHsl, oklchToRgba, oklchToHex]);
 
-  const handleCopyColor = async (colorValue: string) => {
+  const handleCopyColor = useCallback(async (colorValue: string) => {
     try {
       await navigator.clipboard.writeText(convertColor(colorValue));
     } catch (err) {
       console.error('Failed to copy: ', err);
     }
-  };
+  }, [convertColor]);
 
-  const colorCategories = [
+  // Memoized color categories
+  const colorCategories = useMemo(() => [
     {
       title: 'Background',
       colors: [
@@ -92,6 +91,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
       colors: [
         { name: 'primary', color: palette.primary },
         { name: 'secondary', color: palette.secondary },
+        { name: 'tertiary', color: palette.tertiary },
       ]
     },
     {
@@ -103,7 +103,25 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
         { name: 'info', color: palette.info },
       ]
     }
-  ];
+  ], [palette]);
+
+  // Memoized render functions for each category
+  const renderColorCategory = useCallback((category: typeof colorCategories[0]) => (
+    <div key={category.title}>
+      <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-muted)' }}>{category.title}</h3>
+      <div className="flex flex-wrap gap-4">
+        {category.colors.map((colorItem) => (
+          <ColorSwatch
+            key={colorItem.name}
+            name={colorItem.name}
+            color={colorItem.color}
+            onCopy={() => handleCopyColor(colorItem.color)}
+            tooltipValue={convertColor(colorItem.color)}
+          />
+        ))}
+      </div>
+    </div>
+  ), [handleCopyColor, convertColor]);
 
   return (
     <Card>
@@ -124,85 +142,22 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
         <div className="space-y-8">
           {/* Row 1: Background and Text side by side */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-muted)' }}>Background</h3>
-              <div className="flex flex-wrap gap-4">
-                {colorCategories[0].colors.map((colorItem) => (
-                  <ColorSwatch
-                    key={colorItem.name}
-                    name={colorItem.name}
-                    color={colorItem.color}
-                    onCopy={() => handleCopyColor(colorItem.color)}
-                    tooltipValue={convertColor(colorItem.color)}
-                  />
-                ))}
-              </div>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-muted)' }}>Text</h3>
-              <div className="flex flex-wrap gap-4">
-                {colorCategories[1].colors.map((colorItem) => (
-                  <ColorSwatch
-                    key={colorItem.name}
-                    name={colorItem.name}
-                    color={colorItem.color}
-                    onCopy={() => handleCopyColor(colorItem.color)}
-                    tooltipValue={convertColor(colorItem.color)}
-                  />
-                ))}
-              </div>
-            </div>
+            {renderColorCategory(colorCategories[0])}
+            {renderColorCategory(colorCategories[1])}
           </div>
 
           {/* Row 2: Border and Action side by side */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-muted)' }}>Border</h3>
-              <div className="flex flex-wrap gap-4">
-                {colorCategories[2].colors.map((colorItem) => (
-                  <ColorSwatch
-                    key={colorItem.name}
-                    name={colorItem.name}
-                    color={colorItem.color}
-                    onCopy={() => handleCopyColor(colorItem.color)}
-                    tooltipValue={convertColor(colorItem.color)}
-                  />
-                ))}
-              </div>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-muted)' }}>Action</h3>
-              <div className="flex flex-wrap gap-4">
-                {colorCategories[3].colors.map((colorItem) => (
-                  <ColorSwatch
-                    key={colorItem.name}
-                    name={colorItem.name}
-                    color={colorItem.color}
-                    onCopy={() => handleCopyColor(colorItem.color)}
-                    tooltipValue={convertColor(colorItem.color)}
-                  />
-                ))}
-              </div>
-            </div>
+            {renderColorCategory(colorCategories[2])}
+            {renderColorCategory(colorCategories[3])}
           </div>
 
           {/* Row 3: Alert (full width) */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-muted)' }}>Alert</h3>
-            <div className="flex flex-wrap gap-4">
-              {colorCategories[4].colors.map((colorItem) => (
-                <ColorSwatch
-                  key={colorItem.name}
-                  name={colorItem.name}
-                  color={colorItem.color}
-                  onCopy={() => handleCopyColor(colorItem.color)}
-                  tooltipValue={convertColor(colorItem.color)}
-                />
-              ))}
-            </div>
-          </div>
+          {renderColorCategory(colorCategories[4])}
         </div>
       </CardContent>
     </Card>
   );
-}; 
+});
+
+ColorPaletteDisplay.displayName = 'ColorPaletteDisplay'; 

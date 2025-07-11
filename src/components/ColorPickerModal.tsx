@@ -17,23 +17,37 @@ interface ColorPickerModalProps {
 
 // Convert hex color to OKLCH values using culori
 function hexToOklch(hexColor: string): { l: number; c: number; h: number } {
-  const color = oklch(hexColor);
-  if (!color) {
+  try {
+    const color = oklch(hexColor);
+    if (!color || typeof color.l !== 'number' || typeof color.c !== 'number' || typeof color.h !== 'number') {
+      console.warn('Invalid color conversion for:', hexColor);
+      return { l: 0.5, c: 0, h: 0 };
+    }
+
+    return {
+      l: color.l,
+      c: Math.max(0, Math.min(0.4, color.c)), // Clamp chroma to valid range
+      h: color.h >= 0 ? color.h : color.h + 360 // Ensure hue is positive
+    };
+  } catch (error) {
+    console.error('Error converting hex to OKLCH:', error);
     return { l: 0.5, c: 0, h: 0 };
   }
-
-  return {
-    l: color.l ?? 0.5,
-    c: Math.round((color.c ?? 0) * 1000) / 1000, // Round to 3 decimal places
-    h: color.h ?? 0
-  };
 }
 
 // Determine if a color works better as primary in light or dark mode
 function getRecommendedThemeMode(l: number): boolean {
-  // If lightness is 65% or more, recommend dark theme
-  // If lightness is less than 65%, recommend light theme
-  return l < 0.65;
+  // For primary colors:
+  // - Light colors (l > 0.7) work better with dark theme
+  // - Dark colors (l < 0.3) work better with light theme
+  // - Medium colors (0.3 <= l <= 0.7) can work with either, but prefer light theme for better contrast
+  if (l > 0.7) {
+    return false; // Dark theme for light colors
+  } else if (l < 0.3) {
+    return true; // Light theme for dark colors
+  } else {
+    return true; // Light theme for medium colors (better contrast)
+  }
 }
 
 export const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
@@ -61,6 +75,9 @@ export const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
     const { l, c, h } = hexToOklch(selectedColor);
     const recommendedThemeMode = getRecommendedThemeMode(l);
     
+    console.log('ColorPickerModal: Converting hex', selectedColor, 'to OKLCH:', { l, c, h });
+    console.log('ColorPickerModal: Recommended theme mode:', recommendedThemeMode);
+    
     setPreviewConfig({
       hue: h,
       chroma: c,
@@ -73,6 +90,8 @@ export const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
   };
 
   const handleApply = () => {
+    console.log('ColorPickerModal: Applying color config:', previewConfig);
+    console.log('ColorPickerModal: Selected hex color:', selectedColor);
     onColorSelect(previewConfig);
     onClose();
   };

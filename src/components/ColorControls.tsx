@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import type { ColorConfig } from '../utils/colorUtils';
 import { createHueGradient, createChromaGradient } from '../utils/colorUtils';
 import { Slider } from './ui/slider';
@@ -13,31 +13,43 @@ interface ColorControlsProps {
   onColorPickerOpen: () => void;
 }
 
-export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigChange, onColorPickerOpen }) => {
+export const ColorControls: React.FC<ColorControlsProps> = React.memo(({ config, onConfigChange, onColorPickerOpen }) => {
   const [isEditingHue, setIsEditingHue] = useState(false);
   const [isEditingChroma, setIsEditingChroma] = useState(false);
   const [hueInputValue, setHueInputValue] = useState('');
   const [chromaInputValue, setChromaInputValue] = useState('');
 
-  const handleHueChange = (value: number[]) => {
+  // Memoized gradient calculations
+  const hueGradient = useMemo(() => 
+    createHueGradient(config.chroma, 0.5), 
+    [config.chroma]
+  );
+  
+  const chromaGradient = useMemo(() => 
+    createChromaGradient(config.hue, 0.5), 
+    [config.hue]
+  );
+
+  // Direct callback functions without debouncing
+  const handleHueChange = useCallback((value: number[]) => {
     onConfigChange({ ...config, hue: value[0] });
-  };
+  }, [config, onConfigChange]);
 
-  const handleChromaChange = (value: number[]) => {
+  const handleChromaChange = useCallback((value: number[]) => {
     onConfigChange({ ...config, chroma: value[0] });
-  };
+  }, [config, onConfigChange]);
 
-  const handleThemeToggle = () => {
+  const handleThemeToggle = useCallback(() => {
     onConfigChange({ ...config, isLight: !config.isLight });
-  };
+  }, [config, onConfigChange]);
 
-  const handleHueInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleHueInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     
     // Limit to 3 digits (excluding decimal point)
     const digitsOnly = value.replace(/[^\d]/g, '');
     if (digitsOnly.length > 3) {
-      return; // Don't update if more than 3 digits
+      return;
     }
     
     setHueInputValue(value);
@@ -49,15 +61,15 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
         onConfigChange({ ...config, hue: numValue });
       }
     }
-  };
+  }, [config, onConfigChange]);
 
-  const handleChromaInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChromaInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     
     // Limit to 4 digits (excluding decimal point)
     const digitsOnly = value.replace(/[^\d]/g, '');
     if (digitsOnly.length > 4) {
-      return; // Don't update if more than 4 digits
+      return;
     }
     
     setChromaInputValue(value);
@@ -65,48 +77,57 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
       onConfigChange({ ...config, chroma: 0 });
     } else {
       const numValue = parseFloat(value);
-      if (!isNaN(numValue) && numValue >= 0 && numValue <= 0.2) {
+      if (!isNaN(numValue) && numValue >= 0 && numValue <= 0.4) {
         onConfigChange({ ...config, chroma: numValue });
       }
     }
-  };
+  }, [config, onConfigChange]);
 
-  const handleHueFocus = () => {
+  const handleHueFocus = useCallback(() => {
     setIsEditingHue(true);
     setHueInputValue(config.hue === 0 ? '0' : Math.round(config.hue).toString());
-  };
+  }, [config.hue]);
 
-  const handleHueBlur = () => {
+  const handleHueBlur = useCallback(() => {
     setIsEditingHue(false);
     setHueInputValue('');
-  };
+  }, []);
 
-  const handleChromaFocus = () => {
+  const handleChromaFocus = useCallback(() => {
     setIsEditingChroma(true);
     setChromaInputValue(config.chroma === 0 ? '0' : config.chroma.toString());
-  };
+  }, [config.chroma]);
 
-  const handleChromaBlur = () => {
+  const handleChromaBlur = useCallback(() => {
     setIsEditingChroma(false);
     setChromaInputValue('');
-  };
+  }, []);
 
-  // Display logic: use input value when editing, otherwise show formatted value
-  const getHueDisplayValue = () => {
+  // Memoized display values
+  const hueDisplayValue = useMemo(() => {
     if (isEditingHue) {
       return hueInputValue;
     }
     return config.hue === 0 ? '0' : Math.round(config.hue).toString();
-  };
+  }, [isEditingHue, hueInputValue, config.hue]);
 
-  const getChromaDisplayValue = () => {
+  const chromaDisplayValue = useMemo(() => {
     if (isEditingChroma) {
       return chromaInputValue;
     }
     if (config.chroma === 0) return '0';
-    // Show only necessary decimal places (e.g., 0.1 instead of 0.10)
     return config.chroma.toString();
-  };
+  }, [isEditingChroma, chromaInputValue, config.chroma]);
+
+  // Memoized theme toggle styles
+  const themeToggleStyle = useMemo(() => ({
+    backgroundColor: config.isLight ? 'var(--primary)' : 'var(--border)',
+  }), [config.isLight]);
+
+  const themeToggleSpanStyle = useMemo(() => ({
+    backgroundColor: 'var(--bg-light)',
+    borderRadius: '50%',
+  }), []);
 
   return (
     <div className="space-y-6">
@@ -122,18 +143,13 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
               <button
                 onClick={handleThemeToggle}
                 className="theme-toggle relative inline-flex h-6 w-11 items-center transition-colors"
-                style={{
-                  backgroundColor: config.isLight ? 'var(--primary)' : 'var(--border)',
-                }}
+                style={themeToggleStyle}
               >
                 <span
                   className={`inline-block h-4 w-4 transform transition-transform flex items-center justify-center ${
                     config.isLight ? 'translate-x-6' : 'translate-x-1'
                   }`}
-                  style={{
-                    backgroundColor: 'var(--bg-light)',
-                    borderRadius: '50%',
-                  }}
+                  style={themeToggleSpanStyle}
                 >
                   {config.isLight ? (
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -178,13 +194,13 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
                 step={1}
                 className="w-full"
                 style={{
-                  '--slider-track-background': createHueGradient(config.chroma, 0.5),
+                  '--slider-track-background': hueGradient,
                 } as React.CSSProperties}
               />
               <div className="flex items-center space-x-2">
                 <Input
                   type="number"
-                  value={getHueDisplayValue()}
+                  value={hueDisplayValue}
                   onChange={handleHueInputChange}
                   onFocus={handleHueFocus}
                   onBlur={handleHueBlur}
@@ -206,27 +222,27 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
                 id="chroma-slider"
                 value={[config.chroma]}
                 onValueChange={handleChromaChange}
-                max={0.2}
+                max={0.4}
                 min={0}
                 step={0.005}
                 className="w-full"
                 style={{
-                  '--slider-track-background': createChromaGradient(config.hue, 0.5),
+                  '--slider-track-background': chromaGradient,
                 } as React.CSSProperties}
               />
               <div className="flex items-center space-x-2">
                 <Input
                   type="number"
-                  value={getChromaDisplayValue()}
+                  value={chromaDisplayValue}
                   onChange={handleChromaInputChange}
                   onFocus={handleChromaFocus}
                   onBlur={handleChromaBlur}
                   min={0}
-                  max={0.2}
+                  max={0.4}
                   step={0.005}
                   className="w-20"
                 />
-                <span className="text-sm" style={{ color: 'var(--text-muted)' }}>(0 - 0.2)</span>
+                <span className="text-sm" style={{ color: 'var(--text-muted)' }}>(0 - 0.4)</span>
               </div>
             </div>
           </div>
@@ -234,4 +250,6 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
       </Card>
     </div>
   );
-}; 
+});
+
+ColorControls.displayName = 'ColorControls'; 

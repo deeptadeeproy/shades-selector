@@ -1,15 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { ColorControls } from './ColorControls';
 import { ColorPaletteDisplay } from './ColorPaletteDisplay';
-import { CssCodeModal } from './CssCodeModal';
-import { AlertsModal } from './AlertsModal';
-import { ColorPickerModal } from './ColorPickerModal';
 import { Button } from './ui/button';
 import { generateColorPalette, type ColorConfig } from '../utils/colorUtils';
 
+// Lazy load modal components to reduce initial bundle size
+const CssCodeModal = lazy(() => import('./CssCodeModal').then(module => ({ default: module.CssCodeModal })));
+const AlertsModal = lazy(() => import('./AlertsModal').then(module => ({ default: module.AlertsModal })));
+const ColorPickerModal = lazy(() => import('./ColorPickerModal').then(module => ({ default: module.ColorPickerModal })));
+
 type ColorFormat = 'oklch' | 'hsl' | 'rgb' | 'hex';
 
-export const ColorPaletteSelector: React.FC = () => {
+// Loading fallback for lazy components
+const ModalFallback = () => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+    </div>
+  </div>
+);
+
+export const ColorPaletteSelector: React.FC = React.memo(() => {
   const [config, setConfig] = useState<ColorConfig>({
     hue: 265,
     chroma: 0.0,
@@ -21,7 +32,69 @@ export const ColorPaletteSelector: React.FC = () => {
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [paletteFormat, setPaletteFormat] = useState<ColorFormat>('oklch');
 
-  const palette = generateColorPalette(config);
+  // Memoized palette generation
+  const palette = useMemo(() => generateColorPalette(config), [config]);
+
+  // Memoized callback functions
+  const handleConfigChange = useCallback((newConfig: ColorConfig) => {
+    console.log('ColorPaletteSelector: handleConfigChange called with:', newConfig);
+    setConfig(newConfig);
+  }, []);
+
+  const handleColorPickerOpen = useCallback(() => {
+    setIsColorPickerOpen(true);
+  }, []);
+
+  const handleCssModalOpen = useCallback(() => {
+    setIsCssModalOpen(true);
+  }, []);
+
+  const handleAlertsModalOpen = useCallback(() => {
+    setIsAlertsModalOpen(true);
+  }, []);
+
+  const handleCssModalClose = useCallback(() => {
+    setIsCssModalOpen(false);
+  }, []);
+
+  const handleAlertsModalClose = useCallback(() => {
+    setIsAlertsModalOpen(false);
+  }, []);
+
+  const handleColorPickerClose = useCallback(() => {
+    setIsColorPickerOpen(false);
+  }, []);
+
+  const handlePaletteFormatChange = useCallback((format: ColorFormat) => {
+    setPaletteFormat(format);
+  }, []);
+
+  // Memoized styles and values
+  const backgroundStyle = useMemo(() => ({
+    backgroundColor: config.isLight ? palette['bg-light'] : palette['bg-dark']
+  }), [config.isLight, palette]);
+
+  const bgLightRgb = useMemo(() => 
+    config.isLight ? '255, 255, 255' : '51, 51, 51', 
+    [config.isLight]
+  );
+
+  const bgRgb = useMemo(() => 
+    config.isLight ? '245, 245, 245' : '23, 23, 23', 
+    [config.isLight]
+  );
+
+  const borderRgb = useMemo(() => 
+    config.isLight ? '102, 102, 102' : '204, 204, 204', 
+    [config.isLight]
+  );
+
+  const cardBorder = useMemo(() => 
+    config.isLight 
+      ? '1px solid rgba(var(--border-rgb, 102, 102, 102), 0.2)' 
+      : '1px solid rgba(var(--border-rgb, 204, 204, 204), 0.2)', 
+    [config.isLight]
+  );
 
   // Apply colors to CSS custom properties in real-time
   useEffect(() => {
@@ -33,26 +106,51 @@ export const ColorPaletteSelector: React.FC = () => {
     });
 
     // Apply RGB values for glassmorphic effects
-    const bgLightRgb = config.isLight ? '255, 255, 255' : '51, 51, 51';
-    const bgRgb = config.isLight ? '245, 245, 245' : '23, 23, 23';
-    const borderRgb = config.isLight ? '102, 102, 102' : '204, 204, 204';
-    
     root.style.setProperty('--bg-light-rgb', bgLightRgb);
     root.style.setProperty('--bg-rgb', bgRgb);
     root.style.setProperty('--border-rgb', borderRgb);
 
     // Set card border based on theme mode
-    const cardBorder = config.isLight 
-      ? '1px solid rgba(var(--border-rgb, 102, 102, 102), 0.2)' 
-      : '1px solid rgba(var(--border-rgb, 204, 204, 204), 0.2)';
     root.style.setProperty('--card-border', cardBorder);
 
     // Set theme class on body
     document.body.classList.toggle('light', config.isLight);
-  }, [palette, config.isLight, config.hue, config.chroma]);
+  }, [palette, config.isLight, bgLightRgb, bgRgb, borderRgb, cardBorder]);
+
+  // Memoized button styles
+  const secondaryButtonStyle = useMemo(() => ({
+    color: 'var(--text-muted)',
+    borderColor: 'var(--border-muted)',
+  }), []);
+
+  const secondaryButtonHoverStyle = useMemo(() => ({
+    color: 'var(--text)',
+    borderColor: 'var(--border)',
+  }), []);
+
+  const secondaryButtonLeaveStyle = useMemo(() => ({
+    color: 'var(--text-muted)',
+    borderColor: 'var(--border-muted)',
+  }), []);
+
+  const linkStyle = useMemo(() => ({
+    color: 'var(--text-muted)',
+    '--tw-text-opacity': '1',
+    textShadow: '0 0 8px rgba(var(--text-rgb, 0, 0, 0), 0.3)'
+  } as React.CSSProperties), []);
+
+  const linkHoverStyle = useMemo(() => ({
+    color: 'var(--text)',
+    textShadow: '0 0 12px rgba(var(--text-rgb, 0, 0, 0), 0.5)'
+  }), []);
+
+  const linkLeaveStyle = useMemo(() => ({
+    color: 'var(--text-muted)',
+    textShadow: '0 0 8px rgba(var(--text-rgb, 0, 0, 0), 0.3)'
+  }), []);
 
   return (
-    <div className="min-h-screen p-6 flex items-center justify-center" style={{ backgroundColor: config.isLight ? palette['bg-light'] : palette['bg-dark'] }}>
+    <div className="min-h-screen p-6 flex items-center justify-center" style={backgroundStyle}>
       <div className="max-w-7xl mx-auto w-full">
         {/* Mobile heading - shown only on mobile */}
         <div className="lg:hidden mb-6 -mt-2">
@@ -66,7 +164,7 @@ export const ColorPaletteSelector: React.FC = () => {
           <div className="lg:col-span-2">
             <ColorPaletteDisplay 
               palette={palette} 
-              onFormatChange={setPaletteFormat}
+              onFormatChange={handlePaletteFormatChange}
             />
             {/* Made with love - shown only on desktop below color palette */}
             <div className="hidden lg:block mt-4 text-center">
@@ -77,18 +175,12 @@ export const ColorPaletteSelector: React.FC = () => {
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-text hover:to-text transition-colors duration-200 inline-flex items-center gap-1 font-semibold"
-                  style={{ 
-                    color: 'var(--text-muted)',
-                    '--tw-text-opacity': '1',
-                    textShadow: '0 0 8px rgba(var(--text-rgb, 0, 0, 0), 0.3)'
-                  } as React.CSSProperties}
+                  style={linkStyle}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.color = 'var(--text)';
-                    e.currentTarget.style.textShadow = '0 0 12px rgba(var(--text-rgb, 0, 0, 0), 0.5)';
+                    Object.assign(e.currentTarget.style, linkHoverStyle);
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.color = 'var(--text-muted)';
-                    e.currentTarget.style.textShadow = '0 0 8px rgba(var(--text-rgb, 0, 0, 0), 0.3)';
+                    Object.assign(e.currentTarget.style, linkLeaveStyle);
                   }}
                 >
                   Deeptadeep Roy
@@ -121,33 +213,28 @@ export const ColorPaletteSelector: React.FC = () => {
             <div className="flex flex-col">
               <ColorControls 
                 config={config} 
-                onConfigChange={setConfig} 
-                onColorPickerOpen={() => setIsColorPickerOpen(true)}
+                onConfigChange={handleConfigChange} 
+                onColorPickerOpen={handleColorPickerOpen}
               />
 
               {/* Action Buttons */}
               <div className="flex space-x-3 mt-4 justify-end lg:justify-start">
                 <Button 
-                  onClick={() => setIsAlertsModalOpen(true)}
+                  onClick={handleAlertsModalOpen}
                   variant="secondary"
                   className="self-end w-full lg:max-w-none lg:self-auto flex-1 transition-colors duration-200"
-                  style={{
-                    color: 'var(--text-muted)',
-                    borderColor: 'var(--border-muted)',
-                  }}
+                  style={secondaryButtonStyle}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.color = 'var(--text)';
-                    e.currentTarget.style.borderColor = 'var(--border)';
+                    Object.assign(e.currentTarget.style, secondaryButtonHoverStyle);
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.color = 'var(--text-muted)';
-                    e.currentTarget.style.borderColor = 'var(--border-muted)';
+                    Object.assign(e.currentTarget.style, secondaryButtonLeaveStyle);
                   }}
                 >
                   Alerts
                 </Button>
                 <Button 
-                  onClick={() => setIsCssModalOpen(true)}
+                  onClick={handleCssModalOpen}
                   className="self-end w-full lg:max-w-none lg:self-auto flex-1"
                 >
                   See Code
@@ -163,18 +250,12 @@ export const ColorPaletteSelector: React.FC = () => {
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-text hover:to-text transition-colors duration-200 inline-flex items-center gap-1 font-semibold"
-                    style={{ 
-                      color: 'var(--text-muted)',
-                      '--tw-text-opacity': '1',
-                      textShadow: '0 0 8px rgba(var(--text-rgb, 0, 0, 0), 0.3)'
-                    } as React.CSSProperties}
+                    style={linkStyle}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.color = 'var(--text)';
-                      e.currentTarget.style.textShadow = '0 0 12px rgba(var(--text-rgb, 0, 0, 0), 0.5)';
+                      Object.assign(e.currentTarget.style, linkHoverStyle);
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.color = 'var(--text-muted)';
-                      e.currentTarget.style.textShadow = '0 0 8px rgba(var(--text-rgb, 0, 0, 0), 0.3)';
+                      Object.assign(e.currentTarget.style, linkLeaveStyle);
                     }}
                   >
                     Deeptadeep Roy
@@ -190,25 +271,33 @@ export const ColorPaletteSelector: React.FC = () => {
       </div>
 
       {/* Modals */}
-      <CssCodeModal 
-        isOpen={isCssModalOpen}
-        onClose={() => setIsCssModalOpen(false)}
-        palette={palette}
-        currentFormat={paletteFormat}
-      />
-      <AlertsModal 
-        isOpen={isAlertsModalOpen}
-        onClose={() => setIsAlertsModalOpen(false)}
-        palette={palette}
-        currentFormat={paletteFormat}
-      />
-      <ColorPickerModal
-        isOpen={isColorPickerOpen}
-        onClose={() => setIsColorPickerOpen(false)}
-        onColorSelect={setConfig}
-        currentConfig={config}
-        palette={palette}
-      />
+      <Suspense fallback={<ModalFallback />}>
+        <CssCodeModal 
+          isOpen={isCssModalOpen}
+          onClose={handleCssModalClose}
+          palette={palette}
+          currentFormat={paletteFormat}
+        />
+      </Suspense>
+      <Suspense fallback={<ModalFallback />}>
+        <AlertsModal 
+          isOpen={isAlertsModalOpen}
+          onClose={handleAlertsModalClose}
+          palette={palette}
+          currentFormat={paletteFormat}
+        />
+      </Suspense>
+      <Suspense fallback={<ModalFallback />}>
+        <ColorPickerModal
+          isOpen={isColorPickerOpen}
+          onClose={handleColorPickerClose}
+          onColorSelect={handleConfigChange}
+          currentConfig={config}
+          palette={palette}
+        />
+      </Suspense>
     </div>
   );
-}; 
+});
+
+ColorPaletteSelector.displayName = 'ColorPaletteSelector'; 

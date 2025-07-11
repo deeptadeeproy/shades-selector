@@ -16,6 +16,7 @@ export interface ColorPalette {
   // Action colors
   primary: string;
   secondary: string;
+  tertiary: string;
   
   // Alert colors
   danger: string;
@@ -32,15 +33,39 @@ export interface ColorConfig {
 
 import { oklchToRgba } from './oklchConversions';
 
+// Cache for expensive calculations
+const colorCache = new Map<string, string>();
+const gradientCache = new Map<string, string>();
+
+// Cache key generator
+const getCacheKey = (l: number, c: number, h: number): string => `${l.toFixed(3)}_${c.toFixed(3)}_${h.toFixed(1)}`;
+const getGradientCacheKey = (type: string, param1: number, param2: number): string => `${type}_${param1.toFixed(3)}_${param2.toFixed(3)}`;
+
 // Convert OKLCH to RGB values
 function oklchToRgb(l: number, c: number, h: number): { r: number; g: number; b: number } {
   const rgba = oklchToRgba({ l, c, h, a: 1 });
   return { r: rgba.r, g: rgba.g, b: rgba.b };
 }
 
-// Generate OKLCH color
+// Generate OKLCH color with caching
 function generateOklchColor(l: number, c: number, h: number): string {
-  return `oklch(${l * 100}% ${c} ${h})`;
+  const cacheKey = getCacheKey(l, c, h);
+  
+  if (colorCache.has(cacheKey)) {
+    const cached = colorCache.get(cacheKey);
+    if (cached) return cached;
+  }
+  
+  const color = `oklch(${l * 100}% ${c} ${h})`;
+  colorCache.set(cacheKey, color);
+  
+  // Limit cache size to prevent memory leaks
+  if (colorCache.size > 1000) {
+    const firstKey = colorCache.keys().next().value;
+    if (firstKey) colorCache.delete(firstKey);
+  }
+  
+  return color;
 }
 
 // Generate OKLCH color with RGB fallback
@@ -56,7 +81,9 @@ function generateOklchColorWithRgb(l: number, c: number, h: number): { oklch: st
 // Generate the complete color palette using OKLCH
 export function generateColorPalette(config: ColorConfig): ColorPalette {
   const { hue, chroma, isLight } = config;
-  const hueSecondary = (hue + 180) % 360;
+  // Triad method: colors are 120° apart on the color wheel
+  const hueSecondary = (hue + 120) % 360;
+  const hueTertiary = (hue + 240) % 360;
   
   // Calculate chroma values for different purposes
   const chromaBg = +(chroma * 0.5).toFixed(3);
@@ -93,6 +120,7 @@ export function generateColorPalette(config: ColorConfig): ColorPalette {
       // Action colors
       primary: generateOklchColor(0.76, chromaAction, hue),
       secondary: generateOklchColor(0.76, chromaAction, hueSecondary),
+      tertiary: generateOklchColor(0.76, chromaAction, hueTertiary),
       
       // Alert colors - fixed semantic hues with adaptive chroma
       danger: generateOklchColor(0.7, chromaAlert, dangerHue),
@@ -123,6 +151,7 @@ export function generateColorPalette(config: ColorConfig): ColorPalette {
       // Action colors
       primary: generateOklchColor(0.4, chromaAction, hue),
       secondary: generateOklchColor(0.4, chromaAction, hueSecondary),
+      tertiary: generateOklchColor(0.4, chromaAction, hueTertiary),
       
       // Alert colors - fixed semantic hues with adaptive chroma
       danger: generateOklchColor(0.5, chromaAlert, dangerHue),
@@ -133,8 +162,15 @@ export function generateColorPalette(config: ColorConfig): ColorPalette {
   }
 }
 
-// Create gradient for hue slider
+// Create gradient for hue slider with caching
 export function createHueGradient(chroma: number = 0.1, lightness: number = 0.5): string {
+  const cacheKey = getGradientCacheKey('hue', chroma, lightness);
+  
+  if (gradientCache.has(cacheKey)) {
+    const cached = gradientCache.get(cacheKey);
+    if (cached) return cached;
+  }
+  
   const steps = 32;
   const colors = [];
   
@@ -144,11 +180,27 @@ export function createHueGradient(chroma: number = 0.1, lightness: number = 0.5)
     colors.push(color);
   }
   
-  return `linear-gradient(to right, ${colors.join(', ')})`;
+  const gradient = `linear-gradient(to right, ${colors.join(', ')})`;
+  gradientCache.set(cacheKey, gradient);
+  
+  // Limit cache size to prevent memory leaks
+  if (gradientCache.size > 100) {
+    const firstKey = gradientCache.keys().next().value;
+    if (firstKey) gradientCache.delete(firstKey);
+  }
+  
+  return gradient;
 }
 
-// Create gradient for chroma slider
+// Create gradient for chroma slider with caching
 export function createChromaGradient(hue: number = 200, lightness: number = 0.5): string {
+  const cacheKey = getGradientCacheKey('chroma', hue, lightness);
+  
+  if (gradientCache.has(cacheKey)) {
+    const cached = gradientCache.get(cacheKey);
+    if (cached) return cached;
+  }
+  
   const steps = 20;
   const colors = [];
   
@@ -158,5 +210,14 @@ export function createChromaGradient(hue: number = 200, lightness: number = 0.5)
     colors.push(color);
   }
   
-  return `linear-gradient(to right, ${colors.join(', ')})`;
+  const gradient = `linear-gradient(to right, ${colors.join(', ')})`;
+  gradientCache.set(cacheKey, gradient);
+  
+  // Limit cache size to prevent memory leaks
+  if (gradientCache.size > 100) {
+    const firstKey = gradientCache.keys().next().value;
+    if (firstKey) gradientCache.delete(firstKey);
+  }
+  
+  return gradient;
 } 

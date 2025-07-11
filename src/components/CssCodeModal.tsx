@@ -78,6 +78,30 @@ ${cssVars}
 
 .border-primary {
   border-color: var(--primary);
+}
+
+.bg-secondary {
+  background-color: var(--secondary);
+}
+
+.text-secondary {
+  color: var(--secondary);
+}
+
+.border-secondary {
+  border-color: var(--secondary);
+}
+
+.bg-tertiary {
+  background-color: var(--tertiary);
+}
+
+.text-tertiary {
+  color: var(--tertiary);
+}
+
+.border-tertiary {
+  border-color: var(--tertiary);
 }`;
   };
 
@@ -107,7 +131,7 @@ ${cssVars}
 
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>CSS:</span>
+            <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>CSS:</span>
             <div className="flex items-center space-x-2">
               <Dropdown
                 value={format}
@@ -125,9 +149,11 @@ ${cssVars}
           </div>
           <div className="mt-4">
             <pre 
-              className="p-4 rounded-lg text-sm overflow-x-auto max-h-96 custom-scrollbar"
+              className="p-4 text-sm overflow-x-auto max-h-96 custom-scrollbar"
               style={{
                 color: 'var(--text-muted)',
+                backgroundColor: 'var(--bg-light)',
+                borderRadius: '12px',
                 scrollbarWidth: 'thin',
                 scrollbarColor: 'var(--border) transparent',
               }}
