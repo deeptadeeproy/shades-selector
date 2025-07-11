@@ -107,7 +107,7 @@ ${cssVars}
 
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>CSS Code:</span>
+            <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>CSS:</span>
             <div className="flex items-center space-x-2">
               <Dropdown
                 value={format}
@@ -119,7 +119,7 @@ ${cssVars}
                 size="sm"
                 className="h-8"
               >
-                {copied ? 'Copied!' : 'Copy Code'}
+                {copied ? 'Copied!' : 'Copy'}
               </Button>
             </div>
           </div>

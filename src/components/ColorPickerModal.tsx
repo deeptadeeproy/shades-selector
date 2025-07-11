@@ -4,6 +4,8 @@ import { Button } from './ui/button';
 import { Label } from './ui/label';
 import { CustomColorPicker } from './CustomColorPicker';
 import type { ColorConfig } from '../utils/colorUtils';
+import { oklch } from 'culori';
+import { oklchStringToHex } from '../utils/oklchConversions';
 
 interface ColorPickerModalProps {
   isOpen: boolean;
@@ -13,42 +15,25 @@ interface ColorPickerModalProps {
   palette: any;
 }
 
-// Convert RGB to OKLCH values
-function rgbToOklch(r: number, g: number, b: number): { l: number; c: number; h: number } {
-  // Normalize RGB values
-  const rNorm = r / 255;
-  const gNorm = g / 255;
-  const bNorm = b / 255;
-
-  // Convert to linear RGB
-  const rLinear = rNorm <= 0.04045 ? rNorm / 12.92 : Math.pow((rNorm + 0.055) / 1.055, 2.4);
-  const gLinear = gNorm <= 0.04045 ? gNorm / 12.92 : Math.pow((gNorm + 0.055) / 1.055, 2.4);
-  const bLinear = bNorm <= 0.04045 ? bNorm / 12.92 : Math.pow((bNorm + 0.055) / 1.055, 2.4);
-
-  // Convert to XYZ
-  const x = rLinear * 0.4124 + gLinear * 0.3576 + bLinear * 0.1805;
-  const y = rLinear * 0.2126 + gLinear * 0.7152 + bLinear * 0.0722;
-  const z = rLinear * 0.0193 + gLinear * 0.1192 + bLinear * 0.9505;
-
-  // Convert to OKLab
-  const l = Math.pow(0.8189330101 * x + 0.3618667424 * y - 0.1288597137 * z, 1/3);
-  const a = Math.pow(0.0329845446 * x + 0.9293118715 * y + 0.0361446382 * z, 1/3);
-  const bLab = Math.pow(0.0482003018 * x + 0.2643662691 * y + 0.6338517070 * z, 1/3);
-
-  // Convert to OKLCH
-  const l_ok = 0.2104542553 * l + 0.7936177850 * a - 0.0040720468 * bLab;
-  const a_ok = 1.9779984951 * l - 2.4285922050 * a + 0.4505937099 * bLab;
-  const b_ok = 0.0259040371 * l + 0.7827717662 * a - 0.8086757660 * bLab;
-
-  const c = Math.sqrt(a_ok * a_ok + b_ok * b_ok);
-  let h = Math.atan2(b_ok, a_ok) * (180 / Math.PI);
-  if (h < 0) h += 360;
-
+// Convert hex color to OKLCH values using culori
+function hexToOklch(hexColor: string): { l: number; c: number; h: number } {
+  const color = oklch(hexColor);
+  if (!color) {
+    return { l: 0.5, c: 0, h: 0 };
+  }
+  
   return {
-    l: Math.max(0, Math.min(1, l_ok)),
-    c: Math.max(0, Math.min(0.4, c)),
-    h: h
+    l: color.l ?? 0.5,
+    c: Math.round((color.c ?? 0) * 1000) / 1000, // Round to 3 decimal places
+    h: color.h ?? 0
   };
+}
+
+// Determine if a color works better as primary in light or dark mode
+function getRecommendedThemeMode(l: number, c: number): boolean {
+  // If lightness is 65% or more, recommend dark theme
+  // If lightness is less than 65%, recommend light theme
+  return l < 0.65;
 }
 
 export const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
@@ -61,21 +46,27 @@ export const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
   const [selectedColor, setSelectedColor] = useState('#3b82f6');
   const [previewConfig, setPreviewConfig] = useState<ColorConfig>(currentConfig);
 
+  // Initialize selectedColor with current primary color when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      // Convert current OKLCH primary color to hex for the color picker
+      const currentPrimaryColor = palette.primary;
+      const hexColor = oklchStringToHex(currentPrimaryColor);
+      setSelectedColor(hexColor);
+    }
+  }, [isOpen, palette.primary]);
+
   // Update preview when color changes
   useEffect(() => {
-    const color = selectedColor;
-    const r = parseInt(color.slice(1, 3), 16);
-    const g = parseInt(color.slice(3, 5), 16);
-    const b = parseInt(color.slice(5, 7), 16);
-    
-    const { c, h } = rgbToOklch(r, g, b);
+    const { l, c, h } = hexToOklch(selectedColor);
+    const recommendedThemeMode = getRecommendedThemeMode(l, c);
     
     setPreviewConfig({
       hue: h,
       chroma: c,
-      isLight: currentConfig.isLight
+      isLight: recommendedThemeMode
     });
-  }, [selectedColor, currentConfig.isLight]);
+  }, [selectedColor]);
 
   const handleColorChange = (color: string) => {
     setSelectedColor(color);
@@ -122,12 +113,12 @@ export const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
               <div className="space-y-1">
                 <span style={{ color: 'var(--text-muted)' }}>Hue</span>
                 <div 
-                  className="font-mono px-3 py-2"
+                  className="font-mono px-3 py-2 text-center"
                   style={{
-                    backgroundColor: 'var(--bg)',
+                    backgroundColor: 'var(--bg-light)',
                     color: 'var(--text)',
-                    border: '1px solid var(--border)',
                     borderRadius: '8px',
+                    fontWeight: '600',
                   }}
                 >
                   {Math.round(previewConfig.hue)}°
@@ -136,12 +127,12 @@ export const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
               <div className="space-y-1">
                 <span style={{ color: 'var(--text-muted)' }}>Chroma</span>
                 <div 
-                  className="font-mono px-3 py-2"
+                  className="font-mono px-3 py-2 text-center"
                   style={{
-                    backgroundColor: 'var(--bg)',
+                    backgroundColor: 'var(--bg-light)',
                     color: 'var(--text)',
-                    border: '1px solid var(--border)',
                     borderRadius: '8px',
+                    fontWeight: '600',
                   }}
                 >
                   {previewConfig.chroma.toFixed(3)}
@@ -150,12 +141,12 @@ export const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
               <div className="space-y-1">
                 <span style={{ color: 'var(--text-muted)' }}>Theme</span>
                 <div 
-                  className="font-mono px-3 py-2"
+                  className="px-3 py-2 text-center"
                   style={{
-                    backgroundColor: 'var(--bg)',
+                    backgroundColor: 'var(--bg-light)',
                     color: 'var(--text)',
-                    border: '1px solid var(--border)',
                     borderRadius: '8px',
+                    fontWeight: '600',
                   }}
                 >
                   {previewConfig.isLight ? 'Light' : 'Dark'}
