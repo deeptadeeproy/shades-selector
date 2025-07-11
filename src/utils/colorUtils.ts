@@ -113,7 +113,7 @@ export function generateColorPalette(config: ColorConfig): ColorPalette {
       
       // Text colors
       text: generateOklchColor(0.15, chroma, hue),
-      'text-muted': generateOklchColor(0.4, chroma, hue),
+      'text-muted': generateOklchColor(0.4, Math.min(chroma, 0.08), hue),
       
       // Border colors
       highlight: generateOklchColor(1, chroma, hue),

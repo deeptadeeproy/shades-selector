@@ -117,7 +117,7 @@ ${cssVars}
               <Button 
                 onClick={handleCopy} 
                 size="sm"
-                className="h-8"
+                className="h-8 min-w-[80px]"
               >
                 {copied ? 'Copied!' : 'Copy'}
               </Button>

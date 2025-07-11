@@ -54,10 +54,10 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
   const handleChromaInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     
-    // Limit to 3 digits (excluding decimal point)
+    // Limit to 4 digits (excluding decimal point)
     const digitsOnly = value.replace(/[^\d]/g, '');
-    if (digitsOnly.length > 3) {
-      return; // Don't update if more than 3 digits
+    if (digitsOnly.length > 4) {
+      return; // Don't update if more than 4 digits
     }
     
     setChromaInputValue(value);
@@ -65,7 +65,7 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
       onConfigChange({ ...config, chroma: 0 });
     } else {
       const numValue = parseFloat(value);
-      if (!isNaN(numValue) && numValue >= 0 && numValue <= 0.4) {
+      if (!isNaN(numValue) && numValue >= 0 && numValue <= 0.2) {
         onConfigChange({ ...config, chroma: numValue });
       }
     }
@@ -206,9 +206,9 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
                 id="chroma-slider"
                 value={[config.chroma]}
                 onValueChange={handleChromaChange}
-                max={0.4}
+                max={0.2}
                 min={0}
-                step={0.01}
+                step={0.005}
                 className="w-full"
                 style={{
                   '--slider-track-background': createChromaGradient(config.hue, 0.5),
@@ -222,11 +222,11 @@ export const ColorControls: React.FC<ColorControlsProps> = ({ config, onConfigCh
                   onFocus={handleChromaFocus}
                   onBlur={handleChromaBlur}
                   min={0}
-                  max={0.4}
-                  step={0.01}
+                  max={0.2}
+                  step={0.005}
                   className="w-20"
                 />
-                <span className="text-sm" style={{ color: 'var(--text-muted)' }}>(0 - 0.4)</span>
+                <span className="text-sm" style={{ color: 'var(--text-muted)' }}>(0 - 0.2)</span>
               </div>
             </div>
           </div>

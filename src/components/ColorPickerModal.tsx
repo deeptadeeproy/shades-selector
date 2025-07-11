@@ -113,7 +113,7 @@ export const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
               <div className="space-y-1">
                 <span style={{ color: 'var(--text-muted)' }}>Hue</span>
                 <div 
-                  className="font-mono px-3 py-2 text-center"
+                  className="font-mono font-light px-3 py-2 text-center"
                   style={{
                     backgroundColor: 'var(--bg-light)',
                     color: 'var(--text)',
@@ -127,7 +127,7 @@ export const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
               <div className="space-y-1">
                 <span style={{ color: 'var(--text-muted)' }}>Chroma</span>
                 <div 
-                  className="font-mono px-3 py-2 text-center"
+                  className="font-mono font-light px-3 py-2 text-center"
                   style={{
                     backgroundColor: 'var(--bg-light)',
                     color: 'var(--text)',
@@ -141,7 +141,7 @@ export const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
               <div className="space-y-1">
                 <span style={{ color: 'var(--text-muted)' }}>Theme</span>
                 <div 
-                  className="px-3 py-2 text-center"
+                  className="font-mono font-light px-3 py-2 text-center"
                   style={{
                     backgroundColor: 'var(--bg-light)',
                     color: 'var(--text)',

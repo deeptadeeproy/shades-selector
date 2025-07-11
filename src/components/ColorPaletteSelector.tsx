@@ -102,6 +102,12 @@ export const ColorPaletteSelector: React.FC = () => {
           
           {/* Controls - Right Side with heading above */}
           <div className="lg:col-span-1 flex flex-col">
+            {/* Mobile subtext above controls */}
+            <div className="lg:hidden mb-3 ml-4">
+              <p className="text-sm" style={{ color: palette['text-muted'] }}>
+                Adjust the Sliders and toggle theme to create your perfect color palette.
+              </p>
+            </div>
             {/* Page heading and subtext above controls only - hidden on mobile */}
             <div className="hidden lg:block mb-6">
               <h1 className="text-3xl font-bold mb-2" style={{ color: palette.text }}>
@@ -120,17 +126,11 @@ export const ColorPaletteSelector: React.FC = () => {
               />
 
               {/* Action Buttons */}
-              <div className="flex space-x-3 mt-4">
-                <Button 
-                  onClick={() => setIsCssModalOpen(true)}
-                  className="flex-1"
-                >
-                  See Code
-                </Button>
+              <div className="flex space-x-3 mt-4 justify-end lg:justify-start">
                 <Button 
                   onClick={() => setIsAlertsModalOpen(true)}
                   variant="secondary"
-                  className="flex-1 transition-colors duration-200"
+                  className="self-end w-full lg:max-w-none lg:self-auto flex-1 transition-colors duration-200"
                   style={{
                     color: 'var(--text-muted)',
                     borderColor: 'var(--border-muted)',
@@ -145,6 +145,12 @@ export const ColorPaletteSelector: React.FC = () => {
                   }}
                 >
                   Alerts
+                </Button>
+                <Button 
+                  onClick={() => setIsCssModalOpen(true)}
+                  className="self-end w-full lg:max-w-none lg:self-auto flex-1"
+                >
+                  See Code
                 </Button>
               </div>
 
