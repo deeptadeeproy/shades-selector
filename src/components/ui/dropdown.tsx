@@ -40,9 +40,21 @@ export const Dropdown: React.FC<DropdownProps> = ({ value, onChange, options, cl
         className="h-8 px-3 text-sm rounded-lg border flex items-center justify-between w-32 transition-all duration-200"
         style={{
           backgroundColor: 'var(--bg-light)',
-          color: 'var(--text)',
-          borderColor: 'var(--border)',
+          color: isOpen ? 'var(--text)' : 'var(--text-muted)',
+          borderColor: isOpen ? 'var(--border)' : 'var(--border-muted)',
           borderRadius: '8px',
+        }}
+        onMouseEnter={(e) => {
+          if (!isOpen) {
+            e.currentTarget.style.color = 'var(--text)';
+            e.currentTarget.style.borderColor = 'var(--border)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isOpen) {
+            e.currentTarget.style.color = 'var(--text-muted)';
+            e.currentTarget.style.borderColor = 'var(--border-muted)';
+          }
         }}
       >
         <span className="truncate">{selectedOption?.label || value}</span>

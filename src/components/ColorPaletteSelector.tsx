@@ -130,7 +130,19 @@ export const ColorPaletteSelector: React.FC = () => {
                 <Button 
                   onClick={() => setIsAlertsModalOpen(true)}
                   variant="secondary"
-                  className="flex-1"
+                  className="flex-1 transition-colors duration-200"
+                  style={{
+                    color: 'var(--text-muted)',
+                    borderColor: 'var(--border-muted)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = 'var(--text)';
+                    e.currentTarget.style.borderColor = 'var(--border)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'var(--text-muted)';
+                    e.currentTarget.style.borderColor = 'var(--border-muted)';
+                  }}
                 >
                   Alerts
                 </Button>

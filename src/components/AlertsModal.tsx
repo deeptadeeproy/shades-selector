@@ -104,7 +104,7 @@ export const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, palet
 
         <div className="mt-6 p-4 rounded-lg">
           <h4 className="font-medium mb-2" style={{ color: 'var(--text)' }}>Color Values:</h4>
-          <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
             {alerts.map((alert) => (
               <div key={alert.type} className="flex items-center space-x-2">
                 <div

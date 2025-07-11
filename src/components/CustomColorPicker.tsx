@@ -56,12 +56,24 @@ export const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ value, onC
           onClick={() => setShowCustomInput(!showCustomInput)}
           variant="secondary"
           size="sm"
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 transition-colors duration-200"
+          style={{
+            color: 'var(--text-muted)',
+            borderColor: 'var(--border-muted)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--text)';
+            e.currentTarget.style.borderColor = 'var(--border)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--text-muted)';
+            e.currentTarget.style.borderColor = 'var(--border-muted)';
+          }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
           </svg>
-          Custom Hexcode
+          Add Hexcode
         </Button>
         
                  {showCustomInput && (

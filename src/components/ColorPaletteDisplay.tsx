@@ -133,6 +133,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
                     name={colorItem.name}
                     color={colorItem.color}
                     onCopy={() => handleCopyColor(colorItem.color)}
+                    tooltipValue={convertColor(colorItem.color)}
                   />
                 ))}
               </div>
@@ -146,6 +147,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
                     name={colorItem.name}
                     color={colorItem.color}
                     onCopy={() => handleCopyColor(colorItem.color)}
+                    tooltipValue={convertColor(colorItem.color)}
                   />
                 ))}
               </div>
@@ -163,6 +165,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
                     name={colorItem.name}
                     color={colorItem.color}
                     onCopy={() => handleCopyColor(colorItem.color)}
+                    tooltipValue={convertColor(colorItem.color)}
                   />
                 ))}
               </div>
@@ -176,6 +179,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
                     name={colorItem.name}
                     color={colorItem.color}
                     onCopy={() => handleCopyColor(colorItem.color)}
+                    tooltipValue={convertColor(colorItem.color)}
                   />
                 ))}
               </div>
@@ -192,6 +196,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = ({ palett
                   name={colorItem.name}
                   color={colorItem.color}
                   onCopy={() => handleCopyColor(colorItem.color)}
+                  tooltipValue={convertColor(colorItem.color)}
                 />
               ))}
             </div>

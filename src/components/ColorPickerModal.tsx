@@ -30,7 +30,7 @@ function hexToOklch(hexColor: string): { l: number; c: number; h: number } {
 }
 
 // Determine if a color works better as primary in light or dark mode
-function getRecommendedThemeMode(l: number, c: number): boolean {
+function getRecommendedThemeMode(l: number): boolean {
   // If lightness is 65% or more, recommend dark theme
   // If lightness is less than 65%, recommend light theme
   return l < 0.65;
@@ -59,7 +59,7 @@ export const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
   // Update preview when color changes
   useEffect(() => {
     const { l, c, h } = hexToOklch(selectedColor);
-    const recommendedThemeMode = getRecommendedThemeMode(l, c);
+    const recommendedThemeMode = getRecommendedThemeMode(l);
     
     setPreviewConfig({
       hue: h,
@@ -157,7 +157,23 @@ export const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
-            <Button onClick={handleCancel} variant="secondary" className="flex-1">
+            <Button 
+              onClick={handleCancel} 
+              variant="secondary" 
+              className="flex-1 transition-colors duration-200"
+              style={{
+                color: 'var(--text-muted)',
+                borderColor: 'var(--border-muted)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--text)';
+                e.currentTarget.style.borderColor = 'var(--border)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--text-muted)';
+                e.currentTarget.style.borderColor = 'var(--border-muted)';
+              }}
+            >
               Cancel
             </Button>
             <Button onClick={handleApply} className="flex-1">
