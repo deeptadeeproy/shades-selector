@@ -21,7 +21,7 @@ function hexToOklch(hexColor: string): { l: number; c: number; h: number } {
   if (!color) {
     return { l: 0.5, c: 0, h: 0 };
   }
-  
+
   return {
     l: color.l ?? 0.5,
     c: Math.round((color.c ?? 0) * 1000) / 1000, // Round to 3 decimal places
