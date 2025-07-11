@@ -88,14 +88,6 @@ export const ColorSwatch: React.FC<ColorSwatchProps> = ({ name, color, className
             />
           </div>
         )}
-        {/* Copy feedback overlay */}
-        {copied && (
-          <div className="absolute inset-0 rounded-xl flex items-center justify-center bg-black bg-opacity-20">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-          </div>
-        )}
       </div>
       <div className="text-center">
         <p className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>{name}</p>
