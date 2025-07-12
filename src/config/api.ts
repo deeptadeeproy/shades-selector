@@ -2,6 +2,7 @@ const API_BASE_URL = 'http://localhost:3001';
 
 // REST API endpoints
 export const PALETTES_API = `${API_BASE_URL}/api/palettes`;
+export const AUTH_API = `${API_BASE_URL}/api/auth`;
 
 // Type definitions
 export interface PaletteConfig {
@@ -23,6 +24,20 @@ export interface GeneratedPalette {
 
 export interface ApiColorPalette {
   [key: string]: string;
+}
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  createdAt: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  user: AuthUser;
+  token: string;
 }
 
 // Generate palette using REST API
@@ -134,4 +149,89 @@ export function convertColorsToPalette(colors: Color[]): any {
   });
   
   return palette;
+}
+
+// Authentication API functions
+export async function loginUser(email: string, password: string): Promise<AuthResponse> {
+  try {
+    const response = await fetch(`${AUTH_API}/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email,
+        password
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.message || 'Login failed');
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Error logging in:', error);
+    throw error;
+  }
+}
+
+export async function registerUser(name: string, email: string, password: string): Promise<AuthResponse> {
+  try {
+    const response = await fetch(`${AUTH_API}/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        password
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.message || 'Registration failed');
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Error registering user:', error);
+    throw error;
+  }
+}
+
+export async function logoutUser(): Promise<{ success: boolean; message: string }> {
+  try {
+    const response = await fetch(`${AUTH_API}/logout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error logging out:', error);
+    throw error;
+  }
 } 

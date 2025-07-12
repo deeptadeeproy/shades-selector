@@ -18,6 +18,7 @@ interface ColorPaletteSelectorProps {
   onNavigateToLogin: () => void;
   onNavigateToSignup: () => void;
   onLogout: () => void;
+  onNavigateToProjects: () => void;
 }
 
 // Loading fallback for lazy components
@@ -33,7 +34,8 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
   isLoggedIn, 
   onNavigateToLogin, 
   onNavigateToSignup, 
-  onLogout 
+  onLogout,
+  onNavigateToProjects
 }) => {
   const [config, setConfig] = useState<ColorConfig>({
     hue: 265,
@@ -241,10 +243,11 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
         onNavigateToLogin={onNavigateToLogin}
         onNavigateToSignup={onNavigateToSignup}
         onLogout={onLogout}
+        onNavigateToProjects={onNavigateToProjects}
       />
       
       {/* Main Content - with top padding to account for fixed navbar */}
-      <div className="pt-24 p-6 flex items-center justify-center">
+      <div className="pt-24 p-6 flex items-center justify-center min-h-screen">
         <div className="max-w-7xl mx-auto w-full">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             {/* Color Palette Display - Left Side */}
