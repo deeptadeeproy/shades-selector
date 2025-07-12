@@ -40,6 +40,30 @@ export interface AuthResponse {
   token: string;
 }
 
+// Project-related interfaces
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+  palettes: string[];
+}
+
+export interface ProjectResponse {
+  success: boolean;
+  projects?: Project[];
+  project?: Project;
+  message?: string;
+}
+
+export interface SavePaletteToProjectResponse {
+  success: boolean;
+  message: string;
+  project?: Project;
+}
+
 // Generate palette using REST API
 export async function generatePalette(hue: number, chroma: number, isLight: boolean): Promise<GeneratedPalette> {
   try {
@@ -77,12 +101,18 @@ export async function generatePalette(hue: number, chroma: number, isLight: bool
 }
 
 // Save palette
-export async function savePalette(name: string, config: PaletteConfig, colors: Color[]): Promise<{ success: boolean; id: string; message: string }> {
+export async function savePalette(
+  name: string, 
+  config: PaletteConfig, 
+  colors: Color[], 
+  token: string
+): Promise<{ success: boolean; id: string; message: string }> {
   try {
     const response = await fetch(`${PALETTES_API}/save`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         name,
@@ -104,9 +134,15 @@ export async function savePalette(name: string, config: PaletteConfig, colors: C
 }
 
 // Get palette by ID
-export async function getPalette(id: string): Promise<GeneratedPalette> {
+export async function getPalette(id: string, token: string): Promise<GeneratedPalette> {
   try {
-    const response = await fetch(`${PALETTES_API}/${id}`);
+    const response = await fetch(`${PALETTES_API}/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -135,6 +171,30 @@ export async function deletePalette(id: string): Promise<{ success: boolean; mes
     return await response.json();
   } catch (error) {
     console.error('Error deleting palette:', error);
+    throw error;
+  }
+}
+
+// Update palette by ID
+export async function updatePalette(id: string, colors: Color[], config: PaletteConfig, token: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const response = await fetch(`${PALETTES_API}/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ colors, config })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating palette:', error);
     throw error;
   }
 }
@@ -232,6 +292,129 @@ export async function logoutUser(): Promise<{ success: boolean; message: string 
     return await response.json();
   } catch (error) {
     console.error('Error logging out:', error);
+    throw error;
+  }
+}
+
+// Project API functions
+export async function getUserProjects(token: string): Promise<ProjectResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/projects`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching user projects:', error);
+    throw error;
+  }
+}
+
+export async function createProject(name: string, description: string, token: string): Promise<ProjectResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/projects`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        name,
+        description
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating project:', error);
+    throw error;
+  }
+}
+
+export async function updateProject(projectId: string, updates: { name?: string; description?: string }, token: string): Promise<ProjectResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(updates)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating project:', error);
+    throw error;
+  }
+}
+
+export async function deleteProject(projectId: string, token: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    throw error;
+  }
+}
+
+export async function savePaletteToProject(
+  projectId: string, 
+  paletteId: string, 
+  token: string
+): Promise<SavePaletteToProjectResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/palettes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        paletteId
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error saving palette to project:', error);
     throw error;
   }
 } 

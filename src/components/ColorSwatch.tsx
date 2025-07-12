@@ -7,9 +7,11 @@ interface ColorSwatchProps {
   className?: string;
   onCopy?: () => void;
   tooltipValue?: string;
+  refineMode?: boolean;
+  onEdit?: () => void;
 }
 
-export const ColorSwatch: React.FC<ColorSwatchProps> = React.memo(({ name, color, className, onCopy, tooltipValue }) => {
+export const ColorSwatch: React.FC<ColorSwatchProps> = React.memo(({ name, color, className, onCopy, tooltipValue, refineMode = false, onEdit }) => {
   const [copied, setCopied] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -61,16 +63,24 @@ export const ColorSwatch: React.FC<ColorSwatchProps> = React.memo(({ name, color
     <div className={cn("flex flex-col items-center space-y-2 relative", className)}>
       <div className="relative">
         <button
-          className="w-20 h-20 rounded-xl shadow-sm cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95 relative group"
+          className={cn(
+            "w-20 h-20 rounded-xl shadow-sm cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95 relative group",
+            refineMode && "animate-jiggle"
+          )}
           style={buttonStyle}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          onClick={handleCopy}
-          disabled={copied}
+          onMouseEnter={refineMode ? undefined : handleMouseEnter}
+          onMouseLeave={refineMode ? undefined : handleMouseLeave}
+          onClick={refineMode && onEdit ? onEdit : handleCopy}
+          disabled={refineMode ? false : copied}
         >
-          {/* Copy icon in center */}
+          {/* Edit icon in center if refineMode, else copy icon */}
           <div className="absolute inset-0 flex items-center justify-center">
-            {copied ? (
+            {refineMode ? (
+              <svg className="w-6 h-6 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={iconStyle}>
+                <path d="M12 20h9"/>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+            ) : copied ? (
               <svg 
                 className="w-6 h-6 opacity-100 transition-opacity duration-200" 
                 fill="none" 
@@ -93,8 +103,8 @@ export const ColorSwatch: React.FC<ColorSwatchProps> = React.memo(({ name, color
             )}
           </div>
         </button>
-        {/* Tooltip */}
-        {showTooltip && tooltipValue && (
+        {/* Tooltip only if not in refine mode */}
+        {!refineMode && showTooltip && tooltipValue && (
           <div
             className="absolute z-50 px-3 py-2 text-sm font-mono rounded-xl shadow-lg pointer-events-none"
             style={tooltipStyle}

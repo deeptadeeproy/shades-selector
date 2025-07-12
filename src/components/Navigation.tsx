@@ -1,24 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from './ui/button';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface NavigationProps {
-  palette: any;
   isLoggedIn: boolean;
   onNavigateToLogin: () => void;
   onNavigateToSignup: () => void;
   onLogout: () => void;
   onNavigateToProjects: () => void;
+  showProjectsButton?: boolean;
 }
 
 export const Navigation: React.FC<NavigationProps> = React.memo(({ 
-  palette, 
   isLoggedIn, 
   onNavigateToLogin, 
   onNavigateToSignup, 
   onLogout,
-  onNavigateToProjects
+  onNavigateToProjects,
+  showProjectsButton = true
 }) => {
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!isAccountMenuOpen) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(event.target as Node)) {
+        setIsAccountMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isAccountMenuOpen]);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm">
@@ -33,7 +47,18 @@ export const Navigation: React.FC<NavigationProps> = React.memo(({
           
           {/* Right side - Auth buttons or user menu */}
           <div className="flex items-center space-x-4">
-            {isLoggedIn && (
+            {location.pathname !== '/app' && (
+              <button
+                className="text-sm font-medium px-3 py-2 rounded transition-colors duration-150"
+                style={{ color: 'var(--text-muted)', background: 'none', border: 'none' }}
+                onMouseOver={e => (e.currentTarget.style.color = 'var(--text)')}
+                onMouseOut={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+                onClick={() => navigate('/app')}
+              >
+                Palette
+              </button>
+            )}
+            {isLoggedIn && showProjectsButton && (
               <button
                 className="text-sm font-medium px-3 py-2 rounded transition-colors duration-150"
                 style={{ color: 'var(--text-muted)', background: 'none', border: 'none' }}
@@ -109,7 +134,7 @@ export const Navigation: React.FC<NavigationProps> = React.memo(({
                 
                 {/* Account Dropdown Menu */}
                 {isAccountMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg border" style={{
+                  <div ref={accountMenuRef} className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg border" style={{
                     backgroundColor: 'var(--bg-light)',
                     borderColor: 'var(--border)',
                     color: 'var(--text)'

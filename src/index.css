@@ -78,3 +78,9 @@ input[type="color"]::-moz-color-swatch {
   border: none;
   border-radius: 8px;
 }
+
+@keyframes jiggle {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+.animate-jiggle { animation: jiggle 0.3s infinite; }

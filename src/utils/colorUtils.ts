@@ -31,19 +31,11 @@ export interface ColorConfig {
   isLight: boolean; // theme mode
 }
 
-import { oklchToRgba } from './oklchConversions';
-
 // Cache for expensive calculations
 const gradientCache = new Map<string, string>();
 
 // Cache key generator
 const getGradientCacheKey = (type: string, param1: number, param2: number): string => `${type}_${param1.toFixed(3)}_${param2.toFixed(3)}`;
-
-// Convert OKLCH to RGB values
-function oklchToRgb(l: number, c: number, h: number): { r: number; g: number; b: number } {
-  const rgba = oklchToRgba({ l, c, h, a: 1 });
-  return { r: rgba.r, g: rgba.g, b: rgba.b };
-}
 
 // Generate OKLCH color
 function generateOklchColor(l: number, c: number, h: number): string {

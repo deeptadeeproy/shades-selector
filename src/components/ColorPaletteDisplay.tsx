@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import type { ColorPalette } from '../utils/colorUtils';
 import { ColorSwatch } from './ColorSwatch';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -9,11 +9,21 @@ import { oklchStringToHex, oklchStringToRgba, oklchStringToHsl } from '../utils/
 interface ColorPaletteDisplayProps {
   palette: ColorPalette;
   onFormatChange?: (format: ColorFormat) => void;
+  onSave?: () => void;
+  isLoggedIn?: boolean;
+  saveLabel?: string;
+  refineMode?: boolean;
+  onEditColor?: (name: string) => void;
+  onToggleRefine?: () => void;
+  editingColorName?: string | null;
+  onRefineColorChange?: (name: string, newColor: string) => void;
+  saveDisabled?: boolean;
+  editingPaletteId?: string | null;
 }
 
 type ColorFormat = 'oklch' | 'hsl' | 'rgb' | 'hex';
 
-export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = React.memo(({ palette, onFormatChange }) => {
+export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = React.memo(({ palette, onFormatChange, onSave, isLoggedIn, refineMode = false, onEditColor, onToggleRefine, onRefineColorChange, saveDisabled, editingPaletteId }) => {
   const [format, setFormat] = useState<ColorFormat>('oklch');
 
   const handleFormatChange = useCallback((newFormat: ColorFormat) => {
@@ -106,23 +116,59 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = React.mem
     }
   ], [palette]);
 
+  // Native color picker logic
+  const colorInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  const handleSwatchClick = (name: string) => {
+    if (refineMode && colorInputRefs.current[name]) {
+      colorInputRefs.current[name]!.click();
+    } else if (refineMode && onEditColor) {
+      onEditColor(name);
+    }
+  };
+  const handleNativeColorChange = (name: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    if (onRefineColorChange) {
+      onRefineColorChange(name, e.target.value);
+    }
+  };
+
   // Memoized render functions for each category
   const renderColorCategory = useCallback((category: typeof colorCategories[0]) => (
     <div key={category.title}>
       <h3 className="text-lg font-medium mb-4" style={{ color: 'var(--text-muted)' }}>{category.title}</h3>
       <div className="flex flex-wrap gap-4">
         {category.colors.map((colorItem) => (
-          <ColorSwatch
-            key={colorItem.name}
-            name={colorItem.name}
-            color={colorItem.color}
-            onCopy={() => handleCopyColor(colorItem.color)}
-            tooltipValue={convertColor(colorItem.color)}
-          />
+          <div key={colorItem.name} className="relative">
+            <ColorSwatch
+              name={colorItem.name}
+              color={colorItem.color}
+              refineMode={refineMode}
+              onEdit={refineMode ? () => handleSwatchClick(colorItem.name) : undefined}
+              onCopy={!refineMode ? () => handleCopyColor(colorItem.color) : undefined}
+              tooltipValue={!refineMode ? convertColor(colorItem.color) : undefined}
+            />
+            {refineMode && (
+              <input
+                ref={el => { colorInputRefs.current[colorItem.name] = el; }}
+                type="color"
+                value={oklchStringToHex(colorItem.color)}
+                onChange={e => handleNativeColorChange(colorItem.name, e)}
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  width: '100%',
+                  height: '100%',
+                  opacity: 0,
+                  cursor: 'pointer',
+                  zIndex: 2
+                }}
+              />
+            )}
+          </div>
         ))}
       </div>
     </div>
-  ), [handleCopyColor, convertColor]);
+  ), [handleCopyColor, convertColor, refineMode, onEditColor, onRefineColorChange]);
 
   return (
     <Card>
@@ -130,6 +176,18 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = React.mem
         <div className="flex items-center justify-between">
           <CardTitle>Palette</CardTitle>
           <div className="flex items-center space-x-3">
+            <Button
+              size="sm"
+              variant="secondary"
+              className="flex items-center gap-2"
+              onClick={onToggleRefine}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 20h9"/>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+              {refineMode ? 'Done' : 'Refine'}
+            </Button>
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>Format:</span>
               <Dropdown
@@ -138,14 +196,37 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = React.mem
                 options={formatOptions}
               />
             </div>
-            <Button size="sm" className="flex items-center gap-2">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                <polyline points="17,21 17,13 7,13 7,21"/>
-                <polyline points="7,3 7,8 15,8"/>
-              </svg>
-              Save
-            </Button>
+            {isLoggedIn && (
+              editingPaletteId ? (
+                <Button 
+                  size="sm" 
+                  onClick={onSave}
+                  className="flex items-center gap-2"
+                  disabled={saveDisabled}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17,21 17,13 7,13 7,21"/>
+                    <polyline points="7,3 7,8 15,8"/>
+                  </svg>
+                  {/* isLoading ? 'Saving...' : */}
+                  'Save Changes'
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  onClick={onSave}
+                  className="flex items-center gap-2"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17,21 17,13 7,13 7,21"/>
+                    <polyline points="7,3 7,8 15,8"/>
+                  </svg>
+                  Save
+                </Button>
+              )
+            )}
           </div>
         </div>
       </CardHeader>

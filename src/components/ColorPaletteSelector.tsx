@@ -3,13 +3,18 @@ import { ColorControls } from './ColorControls';
 import { ColorPaletteDisplay } from './ColorPaletteDisplay';
 import { Navigation } from './Navigation';
 import { Button } from './ui/button';
-import { generatePalette, convertColorsToPalette } from '../config/api';
+import { generatePalette, convertColorsToPalette, getPalette, updatePalette } from '../config/api';
+import { getAuthToken } from '../utils/authUtils';
 import type { ColorConfig } from '../utils/colorUtils';
+import { useSearchParams } from 'react-router-dom';
+import { oklch } from 'culori';
+import isEqual from 'lodash.isequal';
 
 // Lazy load modal components to reduce initial bundle size
 const CssCodeModal = lazy(() => import('./CssCodeModal').then(module => ({ default: module.CssCodeModal })));
 const AlertsModal = lazy(() => import('./AlertsModal').then(module => ({ default: module.AlertsModal })));
 const ColorPickerModal = lazy(() => import('./ColorPickerModal').then(module => ({ default: module.ColorPickerModal })));
+const ProjectSelectionModal = lazy(() => import('./ProjectSelectionModal').then(module => ({ default: module.ProjectSelectionModal })));
 
 type ColorFormat = 'oklch' | 'hsl' | 'rgb' | 'hex';
 
@@ -42,14 +47,106 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
     chroma: 0.0,
     isLight: false,
   });
-
   const [palette, setPalette] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCssModalOpen, setIsCssModalOpen] = useState(false);
   const [isAlertsModalOpen, setIsAlertsModalOpen] = useState(false);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
+  const [isProjectSelectionOpen, setIsProjectSelectionOpen] = useState(false);
   const [paletteFormat, setPaletteFormat] = useState<ColorFormat>('oklch');
+  const [editingPaletteId, setEditingPaletteId] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const [refineMode, setRefineMode] = useState(false);
+  const [editingColorName, setEditingColorName] = useState<string | null>(null);
+  const [originalPalette, setOriginalPalette] = useState<any>(null);
+  const [originalConfig, setOriginalConfig] = useState<ColorConfig | null>(null);
+
+  const handleToggleRefine = () => {
+    setRefineMode((v) => !v);
+    setEditingColorName(null);
+  };
+  const handleEditColor = (name: string) => {
+    setEditingColorName(name);
+  };
+  const handleRefineColorChange = (name: string, newColor: string) => {
+    setPalette((prev: any) => ({ ...prev, [name]: newColor }));
+    setEditingColorName(null);
+    if (name === 'primary') {
+      const oklchColor = oklch(newColor);
+      if (oklchColor) {
+        setConfig((prev) => ({
+          ...prev,
+          hue: oklchColor.h ?? prev.hue,
+          chroma: oklchColor.c ?? prev.chroma,
+          // isLight remains unchanged
+        }));
+      }
+    }
+  };
+
+  // On mount, check for paletteId in query string
+  useEffect(() => {
+    const paletteId = searchParams.get('paletteId');
+    if (paletteId) {
+      setIsLoading(true);
+      setEditingPaletteId(paletteId);
+      const token = getAuthToken();
+      if (!token) {
+        setError('No authentication token found');
+        setIsLoading(false);
+        return;
+      }
+      getPalette(paletteId, token)
+        .then((result) => {
+          if (result && result.colors && result.config) {
+            const loadedPalette = convertColorsToPalette(result.colors);
+            setPalette(loadedPalette);
+            setConfig(result.config);
+            // Deep clone for originals
+            setOriginalPalette(JSON.parse(JSON.stringify(loadedPalette)));
+            setOriginalConfig(JSON.parse(JSON.stringify(result.config)));
+          } else {
+            setError('Palette not found');
+          }
+        })
+        .catch((err) => {
+          setError(err instanceof Error ? err.message : 'Failed to load palette');
+        })
+        .finally(() => setIsLoading(false));
+    } else {
+      setEditingPaletteId(null);
+      setIsLoading(false);
+      setOriginalPalette(null);
+      setOriginalConfig(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // Only enable Save Changes if palette or config has changed
+  const saveChangesDisabled = editingPaletteId && originalPalette && originalConfig
+    ? isEqual(palette, originalPalette) && isEqual(config, originalConfig)
+    : false;
+
+  // Save Changes handler
+  const handleSaveChanges = async () => {
+    if (!editingPaletteId) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const token = getAuthToken();
+      if (!token) throw new Error('No authentication token found');
+      // Convert palette object to array
+      const colors = Object.entries(palette).map(([name, value]) => ({ name, value: String(value) }));
+      await updatePalette(editingPaletteId, colors, config, token);
+      setError(null);
+      alert('Palette updated successfully!');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update palette');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Generate palette from backend API
   const generatePaletteFromAPI = useCallback(async (newConfig: ColorConfig) => {
@@ -111,6 +208,25 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
 
   const handleColorPickerClose = useCallback(() => {
     setIsColorPickerOpen(false);
+  }, []);
+
+  const handleProjectSelectionOpen = useCallback(() => {
+    if (!isLoggedIn) {
+      onNavigateToLogin();
+      return;
+    }
+    setIsProjectSelectionOpen(true);
+  }, [isLoggedIn, onNavigateToLogin]);
+
+  const handleProjectSelectionClose = useCallback(() => {
+    setIsProjectSelectionOpen(false);
+  }, []);
+
+  const handleProjectSave = useCallback((_projectId: string, _projectName: string, suppressToast?: boolean) => {
+    if (!suppressToast) {
+      setIsProjectSelectionOpen(false);
+    }
+    // If suppressToast is true, do not close the modal here; let the modal handle it.
   }, []);
 
   const handlePaletteFormatChange = useCallback((format: ColorFormat) => {
@@ -238,7 +354,6 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
     <div className="min-h-screen" style={backgroundStyle}>
       {/* Navigation Bar */}
       <Navigation 
-        palette={palette}
         isLoggedIn={isLoggedIn}
         onNavigateToLogin={onNavigateToLogin}
         onNavigateToSignup={onNavigateToSignup}
@@ -255,7 +370,18 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
               <ColorPaletteDisplay 
                 palette={palette} 
                 onFormatChange={handlePaletteFormatChange}
+                onSave={isLoggedIn ? (editingPaletteId ? handleSaveChanges : handleProjectSelectionOpen) : undefined}
+                saveLabel={editingPaletteId ? (isLoading ? 'Saving...' : 'Save Changes') : undefined}
+                isLoggedIn={isLoggedIn}
+                refineMode={refineMode}
+                onEditColor={handleEditColor}
+                onToggleRefine={handleToggleRefine}
+                editingColorName={editingColorName}
+                onRefineColorChange={handleRefineColorChange}
+                saveDisabled={!!editingPaletteId && saveChangesDisabled}
+                editingPaletteId={editingPaletteId}
               />
+              {/* Refine Color Picker Modal */}
               {/* Made with love - shown only on desktop below color palette */}
               <div className="hidden lg:block mt-4 text-center">
                 <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -322,6 +448,8 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
                   </Button>
                 </div>
 
+
+
                 {/* Made with love - shown only on mobile below buttons */}
                 <div className="lg:hidden mt-6 text-center">
                   <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -376,6 +504,16 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
           onColorSelect={handleConfigChange}
           currentConfig={config}
           palette={palette}
+        />
+      </Suspense>
+      <Suspense fallback={<ModalFallback />}>
+        <ProjectSelectionModal
+          isOpen={isProjectSelectionOpen}
+          onClose={handleProjectSelectionClose}
+          onSave={handleProjectSave}
+          palette={palette}
+          userToken={getAuthToken() || ''}
+          paletteConfig={config}
         />
       </Suspense>
     </div>

@@ -1,20 +1,58 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { ColorPaletteSelector } from './components/ColorPaletteSelector';
 import { PaletteManager } from './components/PaletteManager';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { Homepage } from './pages/Homepage';
 import { Projects } from './pages/Projects';
+import { ProjectDetails } from './pages/ProjectDetails';
 import { loginUser, registerUser, logoutUser, type AuthUser } from './config/api';
+
+function resetPaletteCssVars() {
+  const root = document.documentElement;
+  root.removeAttribute('style'); // Removes all inline styles, reverting to CSS defaults
+}
+
+// Wrapper component to handle project ID parameter
+function ProjectDetailsWrapper({ 
+  onNavigateBack, 
+  onNavigateToLogin, 
+  onNavigateToSignup, 
+  onLogout, 
+  onNavigateToProjects 
+}: {
+  onNavigateBack: () => void;
+  onNavigateToLogin: () => void;
+  onNavigateToSignup: () => void;
+  onLogout: () => void;
+  onNavigateToProjects: () => void;
+}) {
+  const { projectId } = useParams<{ projectId: string }>();
+  
+  if (!projectId) {
+    return <Navigate to="/projects" replace />;
+  }
+
+  return (
+    <ProjectDetails 
+      projectId={projectId}
+      onNavigateBack={onNavigateBack}
+      onNavigateToLogin={onNavigateToLogin}
+      onNavigateToSignup={onNavigateToSignup}
+      onLogout={onLogout}
+      onNavigateToProjects={onNavigateToProjects}
+    />
+  );
+}
 
 function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isGuestMode, setIsGuestMode] = useState(false);
-  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
-  const [authError, setAuthError] = useState<string | null>(null);
+  const [, setCurrentUser] = useState<AuthUser | null>(null);
+  const [, setAuthError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const location = useLocation();
 
   // Check for existing token on app load
   useEffect(() => {
@@ -32,6 +70,7 @@ function AppContent() {
         localStorage.removeItem('userData');
       }
     }
+    setIsLoading(false);
   }, []);
 
   const handleLogin = async (email: string, password: string) => {
@@ -90,6 +129,7 @@ function AppContent() {
     setCurrentUser(null);
     setIsLoggedIn(false);
     setIsGuestMode(false);
+    resetPaletteCssVars();
     navigate('/');
   };
 
@@ -97,6 +137,7 @@ function AppContent() {
   const navigateToSignup = () => navigate('/signup');
   const navigateToMain = () => navigate('/app');
   const navigateToProjects = () => navigate('/projects');
+  const navigateToProjectDetails = (projectId: string) => navigate(`/project/${projectId}`);
 
   const handleUseAsGuest = () => {
     // Clear any existing auth data
@@ -135,23 +176,25 @@ function AppContent() {
         <Route 
           path="/" 
           element={
-            isLoggedIn ? (
+            !isLoading && isLoggedIn ? (
               <Navigate to="/app" replace />
-            ) : (
-              <Homepage 
-                onLogin={handleLogin}
-                onSignup={handleSignup}
-                onUseAsGuest={handleUseAsGuest}
-                onSuccess={navigateToMain}
-              />
-            )
+            ) : !isLoading ? (
+              (() => { resetPaletteCssVars(); return (
+                <Homepage 
+                  onLogin={handleLogin}
+                  onSignup={handleSignup}
+                  onUseAsGuest={handleUseAsGuest}
+                  onSuccess={navigateToMain}
+                />
+              ); })()
+            ) : null
           } 
         />
         
         <Route 
           path="/app" 
           element={
-            isLoggedIn || isGuestMode ? (
+            !isLoading && (isLoggedIn || isGuestMode) ? (
               <ColorPaletteSelector 
                 isLoggedIn={isLoggedIn}
                 onNavigateToLogin={navigateToLogin}
@@ -159,26 +202,44 @@ function AppContent() {
                 onLogout={handleLogout}
                 onNavigateToProjects={navigateToProjects}
               />
-            ) : (
+            ) : !isLoading ? (
               <Navigate to="/" replace />
-            )
+            ) : null
           } 
         />
         
         <Route 
           path="/projects" 
           element={
-            isLoggedIn ? (
+            !isLoading && isLoggedIn ? (
               <Projects 
                 onNavigateBack={navigateToMain}
                 onNavigateToLogin={navigateToLogin}
                 onNavigateToSignup={navigateToSignup}
                 onLogout={handleLogout}
                 onNavigateToProjects={navigateToProjects}
+                onNavigateToProjectDetails={navigateToProjectDetails}
               />
-            ) : (
+            ) : !isLoading ? (
               <Navigate to="/" replace />
-            )
+            ) : null
+          } 
+        />
+        
+        <Route 
+          path="/project/:projectId" 
+          element={
+            !isLoading && isLoggedIn ? (
+              <ProjectDetailsWrapper 
+                onNavigateBack={navigateToProjects}
+                onNavigateToLogin={navigateToLogin}
+                onNavigateToSignup={navigateToSignup}
+                onLogout={handleLogout}
+                onNavigateToProjects={navigateToProjects}
+              />
+            ) : !isLoading ? (
+              <Navigate to="/" replace />
+            ) : null
           } 
         />
         
