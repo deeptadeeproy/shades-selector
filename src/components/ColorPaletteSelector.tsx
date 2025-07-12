@@ -6,7 +6,7 @@ import { Button } from './ui/button';
 import { generatePalette, convertColorsToPalette, getPalette, updatePalette } from '../config/api';
 import { getAuthToken } from '../utils/authUtils';
 import type { ColorConfig } from '../utils/colorUtils';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { oklch } from 'culori';
 import isEqual from 'lodash.isequal';
 
@@ -24,6 +24,8 @@ interface ColorPaletteSelectorProps {
   onNavigateToSignup: () => void;
   onLogout: () => void;
   onNavigateToProjects: () => void;
+  userName?: string;
+  onThemeChange?: (isLightMode: boolean) => void;
 }
 
 // Loading fallback for lazy components
@@ -40,7 +42,9 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
   onNavigateToLogin, 
   onNavigateToSignup, 
   onLogout,
-  onNavigateToProjects
+  onNavigateToProjects,
+  userName,
+  onThemeChange
 }) => {
   const [config, setConfig] = useState<ColorConfig>({
     hue: 265,
@@ -61,6 +65,8 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
   const [editingColorName, setEditingColorName] = useState<string | null>(null);
   const [originalPalette, setOriginalPalette] = useState<any>(null);
   const [originalConfig, setOriginalConfig] = useState<ColorConfig | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const navigate = useNavigate();
 
   const handleToggleRefine = () => {
     setRefineMode((v) => !v);
@@ -123,9 +129,9 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  // Only enable Save Changes if palette or config has changed
+  // Only enable Save Changes if palette or config has changed AND not in refine mode
   const saveChangesDisabled = editingPaletteId && originalPalette && originalConfig
-    ? isEqual(palette, originalPalette) && isEqual(config, originalConfig)
+    ? isEqual(palette, originalPalette) && isEqual(config, originalConfig) || refineMode
     : false;
 
   // Save Changes handler
@@ -140,7 +146,12 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
       const colors = Object.entries(palette).map(([name, value]) => ({ name, value: String(value) }));
       await updatePalette(editingPaletteId, colors, config, token);
       setError(null);
-      alert('Palette updated successfully!');
+      setSaveSuccess(true);
+      // Update original state to match current state after successful save
+      setOriginalPalette(JSON.parse(JSON.stringify(palette)));
+      setOriginalConfig(JSON.parse(JSON.stringify(config)));
+      // Reset success state after 1 second
+      setTimeout(() => setSaveSuccess(false), 1000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update palette');
     } finally {
@@ -189,6 +200,15 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
   const handleColorPickerOpen = useCallback(() => {
     setIsColorPickerOpen(true);
   }, []);
+
+  // Handle theme change from Navigation component
+  const handleThemeChange = useCallback((isLightMode: boolean) => {
+    console.log('ColorPaletteSelector: Theme changed to:', isLightMode);
+    const newConfig = { ...config, isLight: isLightMode };
+    setConfig(newConfig);
+    // Generate new palette with updated theme
+    generatePaletteFromAPI(newConfig);
+  }, [config, generatePaletteFromAPI]);
 
   const handleCssModalOpen = useCallback(() => {
     setIsCssModalOpen(true);
@@ -359,6 +379,9 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
         onNavigateToSignup={onNavigateToSignup}
         onLogout={onLogout}
         onNavigateToProjects={onNavigateToProjects}
+        userName={userName}
+        onNavigateToManageAccount={() => navigate('/account')}
+        onThemeChange={handleThemeChange}
       />
       
       {/* Main Content - with top padding to account for fixed navbar */}
@@ -380,6 +403,7 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
                 onRefineColorChange={handleRefineColorChange}
                 saveDisabled={!!editingPaletteId && saveChangesDisabled}
                 editingPaletteId={editingPaletteId}
+                saveSuccess={saveSuccess}
               />
               {/* Refine Color Picker Modal */}
               {/* Made with love - shown only on desktop below color palette */}

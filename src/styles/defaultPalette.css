@@ -11,6 +11,7 @@
   /* Text colors */
   --text: oklch(96% 0 265);
   --text-muted: oklch(76% 0 265);
+  --muted-foreground: oklch(76% 0 265);
   
   /* Border colors */
   --highlight: oklch(50% 0 265);
@@ -46,37 +47,19 @@ html, body {
 
 /* Light mode overrides */
 body.light {
-  /* Background colors */
-  --bg-dark: oklch(98% 0 265);
-  --bg: oklch(100% 0 265);
-  --bg-light: oklch(96% 0 265);
-  
-  /* Text colors */
+  --bg-dark: oklch(92% 0 265);
+  --bg: oklch(96% 0 265);
+  --bg-light: oklch(100% 0 265);
   --text: oklch(15% 0 265);
-  --text-muted: oklch(45% 0 265);
-  
-  /* Border colors */
-  --highlight: oklch(50% 0 265);
-  --border: oklch(85% 0 265);
-  --border-muted: oklch(96% 0 265);
-  
-  /* Action colors - keeping existing primary and secondary */
-  --primary: #92b0f1;
-  --secondary: #8b5cf6;
-  --tertiary: oklch(76% 0.1 145);
-  
-  /* Alert colors */
-  --danger: oklch(45% 0.05 30);
-  --warning: oklch(45% 0.05 100);
-  --success: oklch(45% 0.05 160);
-  --info: oklch(45% 0.05 260);
-  
-  /* RGB values for glassmorphic effects - approximated from OKLCH values */
-  --bg-light-rgb: 245, 245, 245;
-  --bg-rgb: 255, 255, 255;
-  --border-rgb: 218, 220, 224;
-  --text-rgb: 38, 38, 38;
-  
-  /* Card border */
-  --card-border: 1px solid rgba(218, 220, 224, 0.2);
+  --text-muted: oklch(40% 0 265);
+  --highlight: oklch(100% 0 265);
+  --border: oklch(60% 0 265);
+  --border-muted: oklch(70% 0 265);
+  --primary: oklch(40% 0.1 265);
+  --secondary: oklch(40% 0.1 25);
+  --tertiary: oklch(40% 0.1 145);
+  --danger: oklch(50% 0.05 30);
+  --warning: oklch(50% 0.05 100);
+  --success: oklch(50% 0.05 160);
+  --info: oklch(50% 0.05 260);
 } 

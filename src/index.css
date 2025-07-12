@@ -27,23 +27,33 @@
 }
 }
 
-/* Custom scrollbar for code blocks */
-.code-scrollbar::-webkit-scrollbar {
-  width: 8px;
+/* Custom scrollbar for code blocks and modals */
+.code-scrollbar::-webkit-scrollbar,
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
 }
 
-.code-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
+.code-scrollbar::-webkit-scrollbar-track,
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
   border-radius: 4px;
 }
 
-.code-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.3);
+.code-scrollbar::-webkit-scrollbar-thumb,
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border);
   border-radius: 4px;
 }
 
-.code-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.5);
+.code-scrollbar::-webkit-scrollbar-thumb:hover,
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.code-scrollbar::-webkit-scrollbar-corner,
+.custom-scrollbar::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 /* Theme toggle pill shape override */
@@ -61,6 +71,11 @@ input[type="color"] {
   appearance: none;
   border: none;
   cursor: pointer;
+}
+
+/* Ensure all input placeholders use muted text color */
+input::placeholder {
+  color: var(--text-muted) !important;
 }
 
 input[type="color"]::-webkit-color-swatch-wrapper {

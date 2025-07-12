@@ -19,11 +19,12 @@ interface ColorPaletteDisplayProps {
   onRefineColorChange?: (name: string, newColor: string) => void;
   saveDisabled?: boolean;
   editingPaletteId?: string | null;
+  saveSuccess?: boolean;
 }
 
 type ColorFormat = 'oklch' | 'hsl' | 'rgb' | 'hex';
 
-export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = React.memo(({ palette, onFormatChange, onSave, isLoggedIn, refineMode = false, onEditColor, onToggleRefine, onRefineColorChange, saveDisabled, editingPaletteId }) => {
+export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = React.memo(({ palette, onFormatChange, onSave, isLoggedIn, refineMode = false, onEditColor, onToggleRefine, onRefineColorChange, saveDisabled, editingPaletteId, saveSuccess = false }) => {
   const [format, setFormat] = useState<ColorFormat>('oklch');
 
   const handleFormatChange = useCallback((newFormat: ColorFormat) => {
@@ -181,6 +182,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = React.mem
               variant="secondary"
               className="flex items-center gap-2"
               onClick={onToggleRefine}
+              style={{ border: 'none' }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 20h9"/>
@@ -202,21 +204,21 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = React.mem
                   size="sm" 
                   onClick={onSave}
                   className="flex items-center gap-2"
-                  disabled={saveDisabled}
+                  disabled={saveDisabled || saveSuccess}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
                     <polyline points="17,21 17,13 7,13 7,21"/>
                     <polyline points="7,3 7,8 15,8"/>
                   </svg>
-                  {/* isLoading ? 'Saving...' : */}
-                  'Save Changes'
+                  {saveSuccess ? 'Saved Changes' : 'Save Changes'}
                 </Button>
               ) : (
                 <Button
                   size="sm"
                   onClick={onSave}
                   className="flex items-center gap-2"
+                  disabled={refineMode}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>

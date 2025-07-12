@@ -7,7 +7,8 @@ import { Signup } from './pages/Signup';
 import { Homepage } from './pages/Homepage';
 import { Projects } from './pages/Projects';
 import { ProjectDetails } from './pages/ProjectDetails';
-import { loginUser, registerUser, logoutUser, type AuthUser } from './config/api';
+import { ManageAccount } from './pages/ManageAccount';
+import { loginUser, registerUser, logoutUser, type AuthUser, updateUserName, deleteUser } from './config/api';
 
 function resetPaletteCssVars() {
   const root = document.documentElement;
@@ -20,13 +21,15 @@ function ProjectDetailsWrapper({
   onNavigateToLogin, 
   onNavigateToSignup, 
   onLogout, 
-  onNavigateToProjects 
+  onNavigateToProjects, 
+  userName 
 }: {
   onNavigateBack: () => void;
   onNavigateToLogin: () => void;
   onNavigateToSignup: () => void;
   onLogout: () => void;
   onNavigateToProjects: () => void;
+  userName: string | undefined;
 }) {
   const { projectId } = useParams<{ projectId: string }>();
   
@@ -42,6 +45,7 @@ function ProjectDetailsWrapper({
       onNavigateToSignup={onNavigateToSignup}
       onLogout={onLogout}
       onNavigateToProjects={onNavigateToProjects}
+      userName={userName}
     />
   );
 }
@@ -49,7 +53,7 @@ function ProjectDetailsWrapper({
 function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isGuestMode, setIsGuestMode] = useState(false);
-  const [, setCurrentUser] = useState<AuthUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [, setAuthError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -138,6 +142,7 @@ function AppContent() {
   const navigateToMain = () => navigate('/app');
   const navigateToProjects = () => navigate('/projects');
   const navigateToProjectDetails = (projectId: string) => navigate(`/project/${projectId}`);
+  const navigateToManageAccount = () => navigate('/account');
 
   const handleUseAsGuest = () => {
     // Clear any existing auth data
@@ -147,6 +152,40 @@ function AppContent() {
     setIsLoggedIn(false);
     setIsGuestMode(true);
     navigate('/app');
+  };
+
+  const handleUpdateName = async (newName: string) => {
+    if (!currentUser) return;
+    const token = localStorage.getItem('authToken');
+    if (!token) throw new Error('No auth token');
+    const response = await updateUserName(newName, token);
+    setCurrentUser(response.user);
+    localStorage.setItem('userData', JSON.stringify(response.user));
+  };
+  const handleDeleteAccount = async (password: string) => {
+    const token = localStorage.getItem('authToken');
+    if (!token) throw new Error('No auth token');
+    const response = await fetch('http://localhost:3001/api/auth/user', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ password })
+    });
+    if (response.status === 401) {
+      throw new Error('Incorrect password');
+    }
+    if (!response.ok) {
+      throw new Error('Failed to delete account');
+    }
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    setCurrentUser(null);
+    setIsLoggedIn(false);
+    setIsGuestMode(false);
+    resetPaletteCssVars();
+    navigate('/');
   };
 
   return (
@@ -201,6 +240,8 @@ function AppContent() {
                 onNavigateToSignup={navigateToSignup}
                 onLogout={handleLogout}
                 onNavigateToProjects={navigateToProjects}
+                userName={currentUser?.name}
+                onThemeChange={undefined}
               />
             ) : !isLoading ? (
               <Navigate to="/" replace />
@@ -219,6 +260,7 @@ function AppContent() {
                 onLogout={handleLogout}
                 onNavigateToProjects={navigateToProjects}
                 onNavigateToProjectDetails={navigateToProjectDetails}
+                userName={currentUser?.name}
               />
             ) : !isLoading ? (
               <Navigate to="/" replace />
@@ -236,11 +278,27 @@ function AppContent() {
                 onNavigateToSignup={navigateToSignup}
                 onLogout={handleLogout}
                 onNavigateToProjects={navigateToProjects}
+                userName={currentUser?.name}
               />
             ) : !isLoading ? (
               <Navigate to="/" replace />
             ) : null
           } 
+        />
+
+        <Route 
+          path="/account" 
+          element={
+            !isLoading && isLoggedIn && currentUser ? (
+              <ManageAccount
+                user={currentUser}
+                onUpdateName={handleUpdateName}
+                onDeleteAccount={handleDeleteAccount}
+              />
+            ) : !isLoading ? (
+              <Navigate to="/" replace />
+            ) : null
+          }
         />
         
         {/* Redirect any unknown routes to home */}

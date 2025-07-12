@@ -296,6 +296,47 @@ export async function logoutUser(): Promise<{ success: boolean; message: string 
   }
 }
 
+export async function updateUserName(newName: string, token: string): Promise<AuthResponse> {
+  try {
+    const response = await fetch(`${AUTH_API}/user`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ name: newName })
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating user name:', error);
+    throw error;
+  }
+}
+
+export async function deleteUser(token: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const response = await fetch(`${AUTH_API}/user`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    throw error;
+  }
+}
+
 // Project API functions
 export async function getUserProjects(token: string): Promise<ProjectResponse> {
   try {

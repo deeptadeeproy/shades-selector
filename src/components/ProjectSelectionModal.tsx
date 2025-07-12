@@ -160,7 +160,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
           throw new Error(saveResponse.message || 'Failed to save palette to project');
         }
         if (response.project) {
-          setSuccessMessage(`Project ${response.project.name} created and palette saved!`);
+          setSuccessMessage(`Project ${response.project.name.length > 20 ? `${response.project.name.substring(0, 20)}...` : response.project.name} created and palette saved!`);
           // setSelectedProjectId(response.project.id); // This will be handled by the useEffect
         }
       } else {
@@ -203,7 +203,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
       const response = await savePaletteToProject(selectedProjectId, paletteResponse.id, userToken);
       if (response.success) {
         const selectedProject = projects.find(p => p.id === selectedProjectId);
-        setSuccessMessage(`Palette saved to project ${selectedProject?.name || 'Unknown Project'}!`);
+        setSuccessMessage(`Palette saved to project ${selectedProject?.name && selectedProject.name.length > 20 ? `${selectedProject.name.substring(0, 20)}...` : selectedProject?.name || 'Unknown Project'}!`);
         setSelectedProjectId(selectedProjectId);
         // The useEffect will handle calling onSave and onClose after 2 seconds
       } else {
@@ -285,7 +285,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
         )}
 
         {/* Projects List */}
-        <div className="mb-4 max-h-64 overflow-y-auto">
+        <div className="mb-4 max-h-64 overflow-y-auto custom-scrollbar">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: 'var(--primary)' }}></div>
@@ -304,20 +304,31 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
                   key={project.id}
                   className={`p-3 rounded-lg cursor-pointer transition-colors border ${
                     selectedProjectId === project.id 
-                      ? 'border-primary' 
-                      : 'border-transparent hover:border-border'
+                      ? 'border-transparent' 
+                      : 'border-transparent'
                   }`}
                   style={{
                     backgroundColor: selectedProjectId === project.id 
                       ? 'rgba(var(--primary-rgb, 59, 130, 246), 0.1)' 
                       : 'var(--bg-light)',
+                    borderColor: selectedProjectId === project.id ? 'transparent' : undefined,
+                  }}
+                  onMouseEnter={e => {
+                    if (selectedProjectId !== project.id) {
+                      (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)';
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (selectedProjectId !== project.id) {
+                      (e.currentTarget as HTMLDivElement).style.borderColor = 'transparent';
+                    }
                   }}
                   onClick={() => setSelectedProjectId(project.id)}
                 >
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-medium" style={{ color: 'var(--text)' }}>
-                        {project.name}
+                        {project.name.length > 20 ? `${project.name.substring(0, 20)}...` : project.name}
                       </h3>
                       {project.description && (
                         <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
@@ -353,7 +364,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
                   {isCreatingProject ? 'Creating...' : (
                     <>
                       <span className="font-light">Create Project </span>
-                      <span className="font-medium text-lg mx-1">{searchQuery}</span>
+                      <span className="font-medium text-lg mx-1">{searchQuery.length > 20 ? `${searchQuery.substring(0, 20)}...` : searchQuery}</span>
                       <span className="font-light"> and save palette</span>
                     </>
                   )}

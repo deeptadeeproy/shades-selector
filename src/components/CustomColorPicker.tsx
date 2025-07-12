@@ -90,6 +90,13 @@ export const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ value, onC
                  borderRadius: '8px',
                }}
                placeholder="#000000"
+               onFocus={(e) => {
+                 e.target.style.outline = '2px solid var(--primary)';
+                 e.target.style.outlineOffset = '2px';
+               }}
+               onBlur={(e) => {
+                 e.target.style.outline = 'none';
+               }}
              />
              <input
                type="color"
