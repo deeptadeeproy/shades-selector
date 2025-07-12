@@ -7,13 +7,27 @@ Shades is a powerful color palette generator that helps you create beautiful, ac
 ## Features
 
 - **Modern Color Space**: Uses Oklch color space for better color consistency and accessibility
+- **Backend API Integration**: Palette generation powered by GraphQL API
 - **Theme Support**: Generate both light and dark theme palettes
 - **Multiple Export Formats**: Export colors in OKLCH, HEX, RGBA, and HSL formats
-- **Real-time Preview**: See your palette changes instantly
+- **Real-time Preview**: See your palette changes instantly when you interact with controls
 - **CSS Export**: Get ready-to-use CSS custom properties
 - **Color Picker**: Choose your base color with an intuitive color picker
+- **Interactive Controls**: Palette updates only when you move sliders or apply color picker changes
 
 ## Getting Started
+
+### Prerequisites
+
+Before running the frontend, make sure the backend API is running:
+
+```bash
+# In the shades-backend directory
+npm install
+npm start
+```
+
+The backend should be running on `http://localhost:3001`.
 
 ### 1. Explore Your Palette
 
@@ -51,9 +65,10 @@ Start by selecting your primary color using the color picker. This will be the f
 
 ![Color Controls](src/assets/screenshots/color-controls.png)
 
-- **Hue Slider**: Adjust the color hue (0-360 degrees)
-- **Chroma Slider**: Control color saturation (0-0.4)
-- **Theme Toggle**: Switch between light and dark themes
+- **Hue Slider**: Adjust the color hue (0-360 degrees) - palette updates when you release the slider
+- **Chroma Slider**: Control color saturation (0-0.4) - palette updates when you release the slider
+- **Theme Toggle**: Switch between light and dark themes - palette updates immediately
+- **Color Picker**: Choose a specific color - palette updates when you click "Apply Color"
 
 ### 3. Export Your Colors
 
@@ -131,6 +146,70 @@ Oklch is a modern color space that provides:
 - **Better Perceptual Uniformity**: Colors appear more consistent across different brightness levels
 - **Improved Accessibility**: Better contrast ratios and color differentiation
 - **Future-Proof**: Aligned with modern web standards and color theory
+
+## Development
+
+This project uses Vite for fast development and building. To get started:
+
+```bash
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+
+# Test the API connection (requires backend to be running)
+npm run test-api
+```
+
+The app will be available at `http://localhost:5173`.
+
+### API Testing
+
+To test the backend API connection:
+
+```bash
+# Test API connection
+npm run test-api
+
+# Test basic connection
+npm run test-connection
+```
+
+### Troubleshooting
+
+If you encounter the error "Cannot read properties of undefined (reading 'generatePalette')" or "404 Not Found", try these steps:
+
+1. **Check backend dependencies**:
+   ```bash
+   npm run check-deps
+   ```
+
+2. **Check if backend is running**:
+   ```bash
+   npm run test-backend
+   ```
+
+3. **Start the backend** (if not running):
+   ```bash
+   # In shades-backend directory
+   cd ../shades-backend
+   npm install
+   npm start
+   ```
+
+4. **Test the connection**:
+   ```bash
+   npm run test-connection
+   ```
+
+5. **Open the debug tool** in your browser:
+   - Open `debug-api.html` in your browser
+   - Click the test buttons to diagnose the issue
+
+6. **Check browser console** for detailed error messages
+
+The frontend will automatically fall back to local palette generation if the API is unavailable.
 
 ---
 

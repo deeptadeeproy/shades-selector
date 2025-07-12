@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shades API Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .success {
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <h1>Shades API Debug Tool</h1>
+    
+    <div class="test-section">
+        <h2>1. Health Check</h2>
+        <button onclick="testHealth()">Test Health Endpoint</button>
+        <div id="health-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. GraphQL Palette Generation</h2>
+        <button onclick="testGraphQL()">Test GraphQL API</button>
+        <div id="graphql-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Frontend API Call</h2>
+        <button onclick="testFrontendAPI()">Test Frontend API Function</button>
+        <div id="frontend-result"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3001';
+        const GRAPHQL_ENDPOINT = `${API_BASE_URL}/graphql`;
+
+        async function testHealth() {
+            const resultDiv = document.getElementById('health-result');
+            resultDiv.innerHTML = '<p>Testing...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<p class="success">✅ Health check successful</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Health check failed: ${response.status}</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Health check error: ${error.message}</p>`;
+            }
+        }
+
+        async function testGraphQL() {
+            const resultDiv = document.getElementById('graphql-result');
+            resultDiv.innerHTML = '<p>Testing...</p>';
+            
+            try {
+                const response = await fetch(GRAPHQL_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: `
+                            query GeneratePalette($hue: Float!, $chroma: Float!, $isLight: Boolean!) {
+                                generatePalette(hue: $hue, chroma: $chroma, isLight: $isLight) {
+                                    success
+                                    config {
+                                        hue
+                                        chroma
+                                        isLight
+                                    }
+                                    colors {
+                                        name
+                                        value
+                                    }
+                                }
+                            }
+                        `,
+                        variables: {
+                            hue: 265,
+                            chroma: 0.1,
+                            isLight: false
+                        }
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    if (data.data && data.data.generatePalette) {
+                        resultDiv.innerHTML = `<p class="success">✅ GraphQL API working</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                    } else {
+                        resultDiv.innerHTML = `<p class="error">❌ GraphQL response missing data</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                    }
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ GraphQL request failed: ${response.status}</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ GraphQL error: ${error.message}</p>`;
+            }
+        }
+
+        async function testFrontendAPI() {
+            const resultDiv = document.getElementById('frontend-result');
+            resultDiv.innerHTML = '<p>Testing...</p>';
+            
+            try {
+                // Simulate the frontend API call
+                const query = `
+                    query GeneratePalette($hue: Float!, $chroma: Float!, $isLight: Boolean!) {
+                        generatePalette(hue: $hue, chroma: $chroma, isLight: $isLight) {
+                            success
+                            config {
+                                hue
+                                chroma
+                                isLight
+                            }
+                            colors {
+                                name
+                                value
+                            }
+                        }
+                    }
+                `;
+
+                console.log('Sending GraphQL request:', { hue: 265, chroma: 0.1, isLight: false });
+                
+                const response = await fetch(GRAPHQL_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query,
+                        variables: {
+                            hue: 265,
+                            chroma: 0.1,
+                            isLight: false
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log('GraphQL response:', result);
+                
+                if (result.errors) {
+                    console.error('GraphQL errors:', result.errors);
+                    throw new Error(result.errors[0].message);
+                }
+
+                if (!result.data || !result.data.generatePalette) {
+                    console.error('Invalid response structure:', result);
+                    throw new Error('Invalid response structure from server');
+                }
+
+                const palette = result.data.generatePalette;
+                
+                // Convert colors to palette format
+                const convertedPalette = {};
+                palette.colors.forEach(color => {
+                    const key = color.name.replace(/-/g, '');
+                    convertedPalette[key] = color.value;
+                });
+
+                resultDiv.innerHTML = `<p class="success">✅ Frontend API call successful</p><pre>${JSON.stringify(convertedPalette, null, 2)}</pre>`;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Frontend API error: ${error.message}</p>`;
+                console.error('Frontend API error:', error);
+            }
+        }
+    </script>
+</body>
+</html> 

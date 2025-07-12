@@ -18,25 +18,48 @@ export const ColorControls: React.FC<ColorControlsProps> = React.memo(({ config,
   const [isEditingChroma, setIsEditingChroma] = useState(false);
   const [hueInputValue, setHueInputValue] = useState('');
   const [chromaInputValue, setChromaInputValue] = useState('');
+  
+  // Local state for slider values during dragging (not committed yet)
+  const [localHue, setLocalHue] = useState(config.hue);
+  const [localChroma, setLocalChroma] = useState(config.chroma);
+
+  // Update local values when config changes from outside
+  React.useEffect(() => {
+    setLocalHue(config.hue);
+    setLocalChroma(config.chroma);
+  }, [config.hue, config.chroma]);
 
   // Memoized gradient calculations
   const hueGradient = useMemo(() => 
-    createHueGradient(config.chroma, 0.5), 
-    [config.chroma]
+    createHueGradient(localChroma, 0.5), 
+    [localChroma]
   );
   
   const chromaGradient = useMemo(() => 
-    createChromaGradient(config.hue, 0.5), 
-    [config.hue]
+    createChromaGradient(localHue, 0.5), 
+    [localHue]
   );
 
-  // Direct callback functions without debouncing
+  // Handle slider changes during dragging (update local state only)
   const handleHueChange = useCallback((value: number[]) => {
-    onConfigChange({ ...config, hue: value[0] });
-  }, [config, onConfigChange]);
+    setLocalHue(value[0]);
+  }, []);
 
   const handleChromaChange = useCallback((value: number[]) => {
-    onConfigChange({ ...config, chroma: value[0] });
+    setLocalChroma(value[0]);
+  }, []);
+
+  // Handle slider commit (when user releases the slider)
+  const handleHueCommit = useCallback((value: number[]) => {
+    const newHue = value[0];
+    setLocalHue(newHue);
+    onConfigChange({ ...config, hue: newHue });
+  }, [config, onConfigChange]);
+
+  const handleChromaCommit = useCallback((value: number[]) => {
+    const newChroma = value[0];
+    setLocalChroma(newChroma);
+    onConfigChange({ ...config, chroma: newChroma });
   }, [config, onConfigChange]);
 
   const handleThemeToggle = useCallback(() => {
@@ -167,7 +190,12 @@ export const ColorControls: React.FC<ColorControlsProps> = React.memo(({ config,
               <Button
                 onClick={onColorPickerOpen}
                 size="sm"
+                variant="secondary"
                 className="flex items-center gap-2"
+                style={{ 
+                  color: 'var(--text-muted)',
+                  borderColor: 'var(--border)'
+                }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="13.5" cy="6.5" r=".5"/>
@@ -187,8 +215,9 @@ export const ColorControls: React.FC<ColorControlsProps> = React.memo(({ config,
             <div className="space-y-2">
               <Slider
                 id="hue-slider"
-                value={[config.hue]}
+                value={[localHue]}
                 onValueChange={handleHueChange}
+                onValueCommit={handleHueCommit}
                 max={360}
                 min={0}
                 step={1}
@@ -220,8 +249,9 @@ export const ColorControls: React.FC<ColorControlsProps> = React.memo(({ config,
             <div className="space-y-2">
               <Slider
                 id="chroma-slider"
-                value={[config.chroma]}
+                value={[localChroma]}
                 onValueChange={handleChromaChange}
+                onValueCommit={handleChromaCommit}
                 max={0.4}
                 min={0}
                 step={0.005}

@@ -3,6 +3,7 @@ import type { ColorPalette } from '../utils/colorUtils';
 import { ColorSwatch } from './ColorSwatch';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Dropdown } from './ui/dropdown';
+import { Button } from './ui/button';
 import { oklchStringToHex, oklchStringToRgba, oklchStringToHsl } from '../utils/oklchConversions';
 
 interface ColorPaletteDisplayProps {
@@ -74,7 +75,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = React.mem
     {
       title: 'Text',
       colors: [
-        { name: 'text', color: palette.text },
+        { name: 'text', color: palette['text'] },
         { name: 'text-muted', color: palette['text-muted'] },
       ]
     },
@@ -108,7 +109,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = React.mem
   // Memoized render functions for each category
   const renderColorCategory = useCallback((category: typeof colorCategories[0]) => (
     <div key={category.title}>
-      <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-muted)' }}>{category.title}</h3>
+      <h3 className="text-lg font-medium mb-4" style={{ color: 'var(--text-muted)' }}>{category.title}</h3>
       <div className="flex flex-wrap gap-4">
         {category.colors.map((colorItem) => (
           <ColorSwatch
@@ -128,13 +129,23 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = React.mem
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Palette</CardTitle>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>Format:</span>
-            <Dropdown
-              value={format}
-              onChange={(value) => handleFormatChange(value as ColorFormat)}
-              options={formatOptions}
-            />
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>Format:</span>
+              <Dropdown
+                value={format}
+                onChange={(value) => handleFormatChange(value as ColorFormat)}
+                options={formatOptions}
+              />
+            </div>
+            <Button size="sm" className="flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17,21 17,13 7,13 7,21"/>
+                <polyline points="7,3 7,8 15,8"/>
+              </svg>
+              Save
+            </Button>
           </div>
         </div>
       </CardHeader>

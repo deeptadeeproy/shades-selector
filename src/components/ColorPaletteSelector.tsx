@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { ColorControls } from './ColorControls';
 import { ColorPaletteDisplay } from './ColorPaletteDisplay';
+import { Navigation } from './Navigation';
 import { Button } from './ui/button';
-import { generateColorPalette, type ColorConfig } from '../utils/colorUtils';
+import { generatePalette, convertColorsToPalette } from '../config/api';
+import type { ColorConfig } from '../utils/colorUtils';
 
 // Lazy load modal components to reduce initial bundle size
 const CssCodeModal = lazy(() => import('./CssCodeModal').then(module => ({ default: module.CssCodeModal })));
@@ -27,19 +29,51 @@ export const ColorPaletteSelector: React.FC = React.memo(() => {
     isLight: false,
   });
 
+  const [palette, setPalette] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isCssModalOpen, setIsCssModalOpen] = useState(false);
   const [isAlertsModalOpen, setIsAlertsModalOpen] = useState(false);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [paletteFormat, setPaletteFormat] = useState<ColorFormat>('oklch');
 
-  // Memoized palette generation
-  const palette = useMemo(() => generateColorPalette(config), [config]);
+  // Generate palette from backend API
+  const generatePaletteFromAPI = useCallback(async (newConfig: ColorConfig) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const result = await generatePalette(newConfig.hue, newConfig.chroma, newConfig.isLight);
+      
+      if (result.success) {
+        const convertedPalette = convertColorsToPalette(result.colors);
+        setPalette(convertedPalette);
+      } else {
+        throw new Error('Failed to generate palette');
+      }
+    } catch (err) {
+      console.error('Error generating palette from API:', err);
+      let errorMessage = 'Failed to generate palette';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      } else {
+        errorMessage = String(err);
+      }
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-  // Memoized callback functions
+  // Handle config changes - only generate palette when user interacts
   const handleConfigChange = useCallback((newConfig: ColorConfig) => {
     console.log('ColorPaletteSelector: handleConfigChange called with:', newConfig);
     setConfig(newConfig);
-  }, []);
+    // Generate palette immediately when config changes (user interaction)
+    generatePaletteFromAPI(newConfig);
+  }, [generatePaletteFromAPI]);
 
   const handleColorPickerOpen = useCallback(() => {
     setIsColorPickerOpen(true);
@@ -69,9 +103,14 @@ export const ColorPaletteSelector: React.FC = React.memo(() => {
     setPaletteFormat(format);
   }, []);
 
+  // Generate initial palette on component mount
+  useEffect(() => {
+    generatePaletteFromAPI(config);
+  }, []); // Only run once on mount
+
   // Memoized styles and values
   const backgroundStyle = useMemo(() => ({
-    backgroundColor: config.isLight ? palette['bg-light'] : palette['bg-dark']
+    backgroundColor: palette && config.isLight ? palette['bg-light'] : palette ? palette['bg-dark'] : '#171717'
   }), [config.isLight, palette]);
 
   const bgLightRgb = useMemo(() => 
@@ -98,11 +137,13 @@ export const ColorPaletteSelector: React.FC = React.memo(() => {
 
   // Apply colors to CSS custom properties in real-time
   useEffect(() => {
+    if (!palette) return;
+    
     const root = document.documentElement;
     
     // Apply all palette colors as CSS custom properties
     Object.entries(palette).forEach(([key, value]) => {
-      root.style.setProperty(`--${key}`, value);
+      root.style.setProperty(`--${key}`, String(value));
     });
 
     // Apply RGB values for glassmorphic effects
@@ -149,100 +190,52 @@ export const ColorPaletteSelector: React.FC = React.memo(() => {
     textShadow: '0 0 8px rgba(var(--text-rgb, 0, 0, 0), 0.3)'
   }), []);
 
-  return (
-    <div className="min-h-screen p-6 flex items-center justify-center" style={backgroundStyle}>
-      <div className="max-w-7xl mx-auto w-full">
-        {/* Mobile heading - shown only on mobile */}
-        <div className="lg:hidden mb-6 -mt-2">
-          <h1 className="text-3xl font-bold mb-2" style={{ color: palette.text }}>
-            Shadecard
-          </h1>
+  // Show loading state or error
+  if (isLoading && !palette) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-white">Generating your palette...</p>
         </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          {/* Color Palette Display - Left Side */}
-          <div className="lg:col-span-2">
-            <ColorPaletteDisplay 
-              palette={palette} 
-              onFormatChange={handlePaletteFormatChange}
-            />
-            {/* Made with love - shown only on desktop below color palette */}
-            <div className="hidden lg:block mt-4 text-center">
-              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                Made with ❤️ by{' '}
-                <a 
-                  href="https://droyfolio.vercel.app" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-text hover:to-text transition-colors duration-200 inline-flex items-center gap-1 font-semibold"
-                  style={linkStyle}
-                  onMouseEnter={(e) => {
-                    Object.assign(e.currentTarget.style, linkHoverStyle);
-                  }}
-                  onMouseLeave={(e) => {
-                    Object.assign(e.currentTarget.style, linkLeaveStyle);
-                  }}
-                >
-                  Deeptadeep Roy
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                    <path d="M7 17L17 7M17 7H7M17 7V17"/>
-                  </svg>
-                </a>
-              </p>
-            </div>
-          </div>
-          
-          {/* Controls - Right Side with heading above */}
-          <div className="lg:col-span-1 flex flex-col">
-            {/* Mobile subtext above controls */}
-            <div className="lg:hidden mb-3 ml-4">
-              <p className="text-sm" style={{ color: palette['text-muted'] }}>
-                Adjust the Sliders and toggle theme to create your perfect color palette.
-              </p>
-            </div>
-            {/* Page heading and subtext above controls only - hidden on mobile */}
-            <div className="hidden lg:block mb-6">
-              <h1 className="text-3xl font-bold mb-2" style={{ color: palette.text }}>
-                Shadecard
-              </h1>
-              <p className="text-sm" style={{ color: palette['text-muted'] }}>
-                Adjust the Sliders and toggle theme to create your perfect color palette.
-              </p>
-            </div>
-            
-            <div className="flex flex-col">
-              <ColorControls 
-                config={config} 
-                onConfigChange={handleConfigChange} 
-                onColorPickerOpen={handleColorPickerOpen}
+      </div>
+    );
+  }
+
+  if (error && !palette) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center bg-gray-900">
+        <div className="text-center">
+          <p className="text-red-400 mb-4">Error: {error}</p>
+          <Button onClick={() => generatePaletteFromAPI(config)}>
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!palette) {
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen" style={backgroundStyle}>
+      {/* Navigation Bar */}
+      <Navigation palette={palette} />
+      
+      {/* Main Content - with top padding to account for fixed navbar */}
+      <div className="pt-24 p-6 flex items-center justify-center">
+        <div className="max-w-7xl mx-auto w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            {/* Color Palette Display - Left Side */}
+            <div className="lg:col-span-2">
+              <ColorPaletteDisplay 
+                palette={palette} 
+                onFormatChange={handlePaletteFormatChange}
               />
-
-              {/* Action Buttons */}
-              <div className="flex space-x-3 mt-4 justify-end lg:justify-start">
-                <Button 
-                  onClick={handleAlertsModalOpen}
-                  variant="secondary"
-                  className="self-end w-full lg:max-w-none lg:self-auto flex-1 transition-colors duration-200"
-                  style={secondaryButtonStyle}
-                  onMouseEnter={(e) => {
-                    Object.assign(e.currentTarget.style, secondaryButtonHoverStyle);
-                  }}
-                  onMouseLeave={(e) => {
-                    Object.assign(e.currentTarget.style, secondaryButtonLeaveStyle);
-                  }}
-                >
-                  Alerts
-                </Button>
-                <Button 
-                  onClick={handleCssModalOpen}
-                  className="self-end w-full lg:max-w-none lg:self-auto flex-1"
-                >
-                  See Code
-                </Button>
-              </div>
-
-              {/* Made with love - shown only on mobile below buttons */}
-              <div className="lg:hidden mt-6 text-center">
+              {/* Made with love - shown only on desktop below color palette */}
+              <div className="hidden lg:block mt-4 text-center">
                 <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
                   Made with ❤️ by{' '}
                   <a 
@@ -264,6 +257,73 @@ export const ColorPaletteSelector: React.FC = React.memo(() => {
                     </svg>
                   </a>
                 </p>
+              </div>
+            </div>
+            
+            {/* Controls - Right Side */}
+            <div className="lg:col-span-1 flex flex-col">
+              {/* Mobile subtext above controls */}
+              <div className="lg:hidden mb-3 ml-4">
+                <p className="text-sm" style={{ color: palette['text-muted'] }}>
+                  Adjust the Sliders and toggle theme to create your perfect color palette.
+                </p>
+              </div>
+              
+              <div className="flex flex-col">
+                <ColorControls 
+                  config={config} 
+                  onConfigChange={handleConfigChange} 
+                  onColorPickerOpen={handleColorPickerOpen}
+                />
+
+                {/* Action Buttons */}
+                <div className="flex space-x-3 mt-4 justify-end lg:justify-start">
+                  <Button 
+                    onClick={handleAlertsModalOpen}
+                    variant="secondary"
+                    className="self-end w-full lg:max-w-none lg:self-auto flex-1 transition-colors duration-200"
+                    style={secondaryButtonStyle}
+                    onMouseEnter={(e) => {
+                      Object.assign(e.currentTarget.style, secondaryButtonHoverStyle);
+                    }}
+                    onMouseLeave={(e) => {
+                      Object.assign(e.currentTarget.style, secondaryButtonLeaveStyle);
+                    }}
+                  >
+                    Alerts
+                  </Button>
+                  <Button 
+                    onClick={handleCssModalOpen}
+                    className="self-end w-full lg:max-w-none lg:self-auto flex-1"
+                  >
+                    See Code
+                  </Button>
+                </div>
+
+                {/* Made with love - shown only on mobile below buttons */}
+                <div className="lg:hidden mt-6 text-center">
+                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                    Made with ❤️ by{' '}
+                    <a 
+                      href="https://droyfolio.vercel.app" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-text hover:to-text transition-colors duration-200 inline-flex items-center gap-1 font-semibold"
+                      style={linkStyle}
+                      onMouseEnter={(e) => {
+                        Object.assign(e.currentTarget.style, linkHoverStyle);
+                      }}
+                      onMouseLeave={(e) => {
+                        Object.assign(e.currentTarget.style, linkLeaveStyle);
+                      }}
+                    >
+                      Deeptadeep Roy
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                      </svg>
+                    </a>
+                  </p>
+                </div>
               </div>
             </div>
           </div>
