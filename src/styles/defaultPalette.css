@@ -1,0 +1,82 @@
+/* Default Color Palette for non-main pages */
+:root {
+  /* Global radius */
+  --radius: 8px;
+  
+  /* Background colors */
+  --bg-dark: oklch(10% 0 265);
+  --bg: oklch(15% 0 265);
+  --bg-light: oklch(20% 0 265);
+  
+  /* Text colors */
+  --text: oklch(96% 0 265);
+  --text-muted: oklch(76% 0 265);
+  
+  /* Border colors */
+  --highlight: oklch(50% 0 265);
+  --border: oklch(40% 0 265);
+  --border-muted: oklch(30% 0 265);
+  
+  /* Action colors - keeping existing primary and secondary */
+  --primary: #92b0f1;
+  --secondary: #8b5cf6;
+  --tertiary: oklch(76% 0.1 145);
+  
+  /* Alert colors */
+  --danger: oklch(70% 0.05 30);
+  --warning: oklch(70% 0.05 100);
+  --success: oklch(70% 0.05 160);
+  --info: oklch(70% 0.05 260);
+  
+  /* RGB values for glassmorphic effects - approximated from OKLCH values */
+  --bg-light-rgb: 51, 51, 51;
+  --bg-rgb: 38, 38, 38;
+  --border-rgb: 102, 102, 102;
+  --text-rgb: 245, 245, 245;
+  
+  /* Card border */
+  --card-border: 1px solid rgba(102, 102, 102, 0.2);
+}
+
+/* Apply background to body and html */
+html, body {
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+/* Light mode overrides */
+body.light {
+  /* Background colors */
+  --bg-dark: oklch(98% 0 265);
+  --bg: oklch(100% 0 265);
+  --bg-light: oklch(96% 0 265);
+  
+  /* Text colors */
+  --text: oklch(15% 0 265);
+  --text-muted: oklch(45% 0 265);
+  
+  /* Border colors */
+  --highlight: oklch(50% 0 265);
+  --border: oklch(85% 0 265);
+  --border-muted: oklch(96% 0 265);
+  
+  /* Action colors - keeping existing primary and secondary */
+  --primary: #92b0f1;
+  --secondary: #8b5cf6;
+  --tertiary: oklch(76% 0.1 145);
+  
+  /* Alert colors */
+  --danger: oklch(45% 0.05 30);
+  --warning: oklch(45% 0.05 100);
+  --success: oklch(45% 0.05 160);
+  --info: oklch(45% 0.05 260);
+  
+  /* RGB values for glassmorphic effects - approximated from OKLCH values */
+  --bg-light-rgb: 245, 245, 245;
+  --bg-rgb: 255, 255, 255;
+  --border-rgb: 218, 220, 224;
+  --text-rgb: 38, 38, 38;
+  
+  /* Card border */
+  --card-border: 1px solid rgba(218, 220, 224, 0.2);
+} 

@@ -13,6 +13,13 @@ const ColorPickerModal = lazy(() => import('./ColorPickerModal').then(module => 
 
 type ColorFormat = 'oklch' | 'hsl' | 'rgb' | 'hex';
 
+interface ColorPaletteSelectorProps {
+  isLoggedIn: boolean;
+  onNavigateToLogin: () => void;
+  onNavigateToSignup: () => void;
+  onLogout: () => void;
+}
+
 // Loading fallback for lazy components
 const ModalFallback = () => (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -22,7 +29,12 @@ const ModalFallback = () => (
   </div>
 );
 
-export const ColorPaletteSelector: React.FC = React.memo(() => {
+export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.memo(({ 
+  isLoggedIn, 
+  onNavigateToLogin, 
+  onNavigateToSignup, 
+  onLogout 
+}) => {
   const [config, setConfig] = useState<ColorConfig>({
     hue: 265,
     chroma: 0.0,
@@ -154,8 +166,9 @@ export const ColorPaletteSelector: React.FC = React.memo(() => {
     // Set card border based on theme mode
     root.style.setProperty('--card-border', cardBorder);
 
-    // Set theme class on body
-    document.body.classList.toggle('light', config.isLight);
+    // Don't set theme class on body for dynamic palettes
+    // The dynamic colors from the backend should take precedence
+    // document.body.classList.toggle('light', config.isLight);
   }, [palette, config.isLight, bgLightRgb, bgRgb, borderRgb, cardBorder]);
 
   // Memoized button styles
@@ -222,7 +235,13 @@ export const ColorPaletteSelector: React.FC = React.memo(() => {
   return (
     <div className="min-h-screen" style={backgroundStyle}>
       {/* Navigation Bar */}
-      <Navigation palette={palette} />
+      <Navigation 
+        palette={palette}
+        isLoggedIn={isLoggedIn}
+        onNavigateToLogin={onNavigateToLogin}
+        onNavigateToSignup={onNavigateToSignup}
+        onLogout={onLogout}
+      />
       
       {/* Main Content - with top padding to account for fixed navbar */}
       <div className="pt-24 p-6 flex items-center justify-center">
