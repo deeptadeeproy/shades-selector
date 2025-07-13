@@ -30,7 +30,7 @@ const configs: Record<string, EnvironmentConfig> = {
     DEBUG: true
   },
   production: {
-    API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://shades-backend.drhomelab.in',
+    API_BASE_URL: 'https://shades-backend.drhomelab.in',
     ENVIRONMENT: 'production',
     DEBUG: false
   }
