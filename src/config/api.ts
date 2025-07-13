@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3001';
+import { API_BASE_URL } from './environment';
 
 // REST API endpoints
 export const PALETTES_API = `${API_BASE_URL}/api/palettes`;

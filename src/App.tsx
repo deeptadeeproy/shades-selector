@@ -165,7 +165,7 @@ function AppContent() {
   const handleDeleteAccount = async (password: string) => {
     const token = localStorage.getItem('authToken');
     if (!token) throw new Error('No auth token');
-    const response = await fetch('http://localhost:3001/api/auth/user', {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://shades-backend.drhomelab.in'}/api/auth/user`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
