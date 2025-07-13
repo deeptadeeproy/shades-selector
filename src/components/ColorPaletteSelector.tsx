@@ -25,7 +25,6 @@ interface ColorPaletteSelectorProps {
   onLogout: () => void;
   onNavigateToProjects: () => void;
   userName?: string;
-  onThemeChange?: (isLightMode: boolean) => void;
 }
 
 // Loading fallback for lazy components
@@ -43,8 +42,7 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
   onNavigateToSignup, 
   onLogout,
   onNavigateToProjects,
-  userName,
-  onThemeChange
+  userName
 }) => {
   const [config, setConfig] = useState<ColorConfig>({
     hue: 265,
@@ -201,14 +199,7 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
     setIsColorPickerOpen(true);
   }, []);
 
-  // Handle theme change from Navigation component
-  const handleThemeChange = useCallback((isLightMode: boolean) => {
-    console.log('ColorPaletteSelector: Theme changed to:', isLightMode);
-    const newConfig = { ...config, isLight: isLightMode };
-    setConfig(newConfig);
-    // Generate new palette with updated theme
-    generatePaletteFromAPI(newConfig);
-  }, [config, generatePaletteFromAPI]);
+
 
   const handleCssModalOpen = useCallback(() => {
     setIsCssModalOpen(true);
@@ -381,7 +372,6 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
         onNavigateToProjects={onNavigateToProjects}
         userName={userName}
         onNavigateToManageAccount={() => navigate('/account')}
-        onThemeChange={handleThemeChange}
       />
       
       {/* Main Content - with top padding to account for fixed navbar */}

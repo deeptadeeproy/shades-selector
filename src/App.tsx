@@ -8,7 +8,7 @@ import { Homepage } from './pages/Homepage';
 import { Projects } from './pages/Projects';
 import { ProjectDetails } from './pages/ProjectDetails';
 import { ManageAccount } from './pages/ManageAccount';
-import { loginUser, registerUser, logoutUser, type AuthUser, updateUserName, deleteUser } from './config/api';
+import { loginUser, registerUser, logoutUser, type AuthUser, updateUserName } from './config/api';
 
 function resetPaletteCssVars() {
   const root = document.documentElement;
@@ -142,7 +142,7 @@ function AppContent() {
   const navigateToMain = () => navigate('/app');
   const navigateToProjects = () => navigate('/projects');
   const navigateToProjectDetails = (projectId: string) => navigate(`/project/${projectId}`);
-  const navigateToManageAccount = () => navigate('/account');
+  // const navigateToManageAccount = () => navigate('/account');
 
   const handleUseAsGuest = () => {
     // Clear any existing auth data
@@ -241,7 +241,6 @@ function AppContent() {
                 onLogout={handleLogout}
                 onNavigateToProjects={navigateToProjects}
                 userName={currentUser?.name}
-                onThemeChange={undefined}
               />
             ) : !isLoading ? (
               <Navigate to="/" replace />
