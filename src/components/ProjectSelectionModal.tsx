@@ -40,6 +40,8 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [showAllProjects, setShowAllProjects] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  // Add a new state for the create+save step
+  const [createSaveStep, setCreateSaveStep] = useState<'idle' | 'creating' | 'saving'>('idle');
 
   // Fetch user projects on modal open, but not after successful save
   useEffect(() => {
@@ -119,6 +121,11 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
     }
   }, [isOpen]);
 
+  // Reset createSaveStep when modal closes
+  useEffect(() => {
+    if (!isOpen) setCreateSaveStep('idle');
+  }, [isOpen]);
+
   const handleCreateProject = useCallback(async () => {
     if (!searchQuery.trim()) {
       setError('Project name is required');
@@ -126,8 +133,8 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
     }
 
     setIsCreatingProject(true);
-    setIsSavingPalette(true);
     setError(null);
+    setCreateSaveStep('creating');
 
     try {
       // 1. Create the project
@@ -147,6 +154,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
         setSelectedProjectId(response.project.id);
 
         // 2. Save the palette to the new project
+        setCreateSaveStep('saving');
         const colors = Object.entries(palette).map(([name, value]) => ({ name, value }));
         const config = paletteConfig || {
           hue: 265, // Default values if not provided
@@ -164,7 +172,6 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
         }
         if (response.project) {
           setSuccessMessage(`Project ${response.project.name.length > 20 ? `${response.project.name.substring(0, 20)}...` : response.project.name} created and palette saved!`);
-          // setSelectedProjectId(response.project.id); // This will be handled by the useEffect
         }
       } else {
         throw new Error(response.message || 'Failed to create project');
@@ -172,6 +179,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
     } catch (err) {
       console.error('Error creating project or saving palette:', err);
       setError(err instanceof Error ? err.message : 'Failed to create project or save palette');
+      setCreateSaveStep('idle');
     } finally {
       setIsCreatingProject(false);
       setIsSavingPalette(false);
@@ -357,28 +365,28 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
 
               {/* Create New Project Option */}
               {showCreateNewOption && (
-                <button
-                  className="p-3 rounded-lg border border-dashed flex items-center justify-center w-full transition-colors text-base font-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                  style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-light)', color: 'var(--text-muted)' }}
-                  onClick={() => {
-                    setNewProjectName(searchQuery);
-                    handleCreateProject();
-                  }}
-                  disabled={isCreatingProject || isSavingPalette}
-                >
-                  {isCreatingProject || isSavingPalette ? (
-                    <div className="flex items-center gap-2">
+                (createSaveStep === 'creating' || createSaveStep === 'saving') ? (
+                  <div className="p-3 rounded-lg border border-dashed flex items-center justify-center w-full transition-colors text-base font-light min-h-[56px]" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-light)', color: 'var(--text-muted)' }}>
+                    <div className="flex items-center gap-2 mx-auto">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2" style={{ borderColor: 'var(--primary)' }}></div>
-                      <span>Saving palette...</span>
+                      <span>{createSaveStep === 'creating' ? 'Creating Project...' : 'Saving palette...'}</span>
                     </div>
-                  ) : (
-                    <>
-                      <span className="font-light">Create Project </span>
-                      <span className="font-medium text-lg mx-1">{searchQuery.length > 20 ? `${searchQuery.substring(0, 20)}...` : searchQuery}</span>
-                      <span className="font-light"> and save palette</span>
-                    </>
-                  )}
-                </button>
+                  </div>
+                ) : (
+                  <button
+                    className="p-3 rounded-lg border border-dashed flex items-center justify-center w-full transition-colors text-base font-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                    style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-light)', color: 'var(--text-muted)' }}
+                    onClick={() => {
+                      setNewProjectName(searchQuery);
+                      handleCreateProject();
+                    }}
+                    disabled={isCreatingProject || isSavingPalette}
+                  >
+                    <span className="font-light">Create Project </span>
+                    <span className="font-medium text-lg mx-1">{searchQuery.length > 20 ? `${searchQuery.substring(0, 20)}...` : searchQuery}</span>
+                    <span className="font-light"> and save palette</span>
+                  </button>
+                )
               )}
 
               {/* Show More Projects Option */}
