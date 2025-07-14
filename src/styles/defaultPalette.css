@@ -63,3 +63,7 @@ body.light {
   --success: oklch(50% 0.05 160);
   --info: oklch(50% 0.05 260);
 } 
+
+.card-group:hover .delete-btn {
+  opacity: 1;
+} 

@@ -505,7 +505,9 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {palettes.map((palette, index) => (
-                    <Card key={palette.id} className="hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200"
+                    <Card key={palette.id} 
+                      className="card-group hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200"
+                      style={{ border: 'none', backgroundColor: 'var(--bg-light)', position: 'relative' }}
                       onClick={() => handlePaletteClick(palette.id, palette.name)}
                     >
                       <CardContent className="p-4">
@@ -568,11 +570,11 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
                         {/* Delete icon button in the bottom right */}
                         <button
                           onClick={(e) => handleDeletePalette(palette.id, e)}
-                          className="absolute bottom-3 right-3"
+                          className="absolute bottom-3 right-3 delete-btn opacity-0 transition-opacity"
                           style={{ background: 'none', border: 'none', color: 'var(--danger)', padding: 0, cursor: 'pointer', transition: 'color 0.2s' }}
                           aria-label="Delete palette"
                           disabled={isDeletingPalette === palette.id}
-                          onMouseEnter={e => (e.currentTarget.style.color = '#ef4444')}
+                          onMouseEnter={e => (e.currentTarget.style.color = '#b91c1c')}
                           onMouseLeave={e => (e.currentTarget.style.color = 'var(--danger)')}
                         >
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
