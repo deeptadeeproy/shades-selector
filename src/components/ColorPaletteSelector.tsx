@@ -275,15 +275,15 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
     setPaletteFormat(format);
   }, []);
 
-  // Generate initial palette on component mount
+  // Generate initial palette on component mount or when config changes
   useEffect(() => {
-    // Only generate a new palette if not editing/loading an existing one
+    // Only generate a new palette if not editing/loading an existing one and no palette is loaded
     const paletteId = location.state?.paletteId || searchParams.get('paletteId');
     const preloadedPaletteData = location.state?.paletteData;
-    if (!paletteId && !preloadedPaletteData) {
+    if (!paletteId && !preloadedPaletteData && !palette) {
       generatePaletteFromAPI(config);
     }
-  }, []); // Only run once on mount
+  }, [config, palette, location.state, searchParams]);
 
   // Memoized styles and values
   const backgroundStyle = useMemo(() => ({
