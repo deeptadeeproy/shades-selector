@@ -41,12 +41,12 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
   const [showAllProjects, setShowAllProjects] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Fetch user projects on modal open
+  // Fetch user projects on modal open, but not after successful save
   useEffect(() => {
-    if (isOpen && userToken) {
+    if (isOpen && userToken && !successMessage) {
       fetchProjects();
     }
-  }, [isOpen, userToken]);
+  }, [isOpen, userToken, successMessage]);
 
   // Filter projects based on search query and update displayed projects
   useEffect(() => {
@@ -227,6 +227,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
     setSelectedProjectId(null);
     setError(null);
     setShowAllProjects(false);
+    setSuccessMessage(null);
     onClose();
   }, [onClose]);
 
