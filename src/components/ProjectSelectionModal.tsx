@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Modal } from './ui/modal';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { getUserProjects, createProject, savePaletteToProject, savePalette, type Project } from '../config/api';
 import { fuzzySearchWithScore } from '../utils/fuzzySearch';
+import { generatePaletteName } from '../utils/colorUtils';
 import type { ColorPalette } from '../utils/colorUtils';
 
 interface ProjectSelectionModalProps {
@@ -150,7 +151,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
           chroma: 0.0,
           isLight: false
         };
-        const paletteName = `Palette ${new Date().toLocaleDateString()}`;
+        const paletteName = generatePaletteName(palette as unknown as Record<string, string>); // <-- Use unknown cast
         const paletteResponse = await savePalette(paletteName, config, colors, userToken);
         if (!paletteResponse.success) {
           throw new Error(paletteResponse.message || 'Failed to save palette');
@@ -192,7 +193,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
         isLight: false
       };
       
-      const paletteName = `Palette ${new Date().toLocaleDateString()}`;
+      const paletteName = generatePaletteName(palette as unknown as Record<string, string>); // <-- Use unknown cast
       const paletteResponse = await savePalette(paletteName, config, colors, userToken);
       
       if (!paletteResponse.success) {

@@ -1,4 +1,5 @@
 import { API_BASE_URL } from './environment';
+import { generateColorPalette } from '../utils/colorUtils';
 
 // REST API endpoints
 export const PALETTES_API = `${API_BASE_URL}/api/palettes`;
@@ -18,6 +19,7 @@ export interface Color {
 
 export interface GeneratedPalette {
   success: boolean;
+  name?: string; // <-- Add name field
   config: PaletteConfig;
   colors: Color[];
 }
@@ -67,33 +69,11 @@ export interface SavePaletteToProjectResponse {
 // Generate palette using REST API
 export async function generatePalette(hue: number, chroma: number, isLight: boolean): Promise<GeneratedPalette> {
   try {
-    console.log('Sending REST request:', { hue, chroma, isLight });
-    
-    const response = await fetch(`${PALETTES_API}/generate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        hue,
-        chroma,
-        isLight
-      })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-    }
-
-    const result = await response.json();
-    console.log('REST response:', result);
-    
-    if (!result.success) {
-      throw new Error(result.error || 'Failed to generate palette');
-    }
-
-    return result;
+    // Use local palette generation logic
+    const config = { hue, chroma, isLight };
+    const palette = generateColorPalette(config);
+    const colors = Object.entries(palette).map(([name, value]) => ({ name, value: value as string }));
+    return { success: true, config, colors };
   } catch (error) {
     console.error('Error generating palette:', error);
     throw error;

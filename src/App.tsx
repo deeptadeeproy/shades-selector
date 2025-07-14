@@ -15,41 +15,6 @@ function resetPaletteCssVars() {
   root.removeAttribute('style'); // Removes all inline styles, reverting to CSS defaults
 }
 
-// Wrapper component to handle project ID parameter
-function ProjectDetailsWrapper({ 
-  onNavigateBack, 
-  onNavigateToLogin, 
-  onNavigateToSignup, 
-  onLogout, 
-  onNavigateToProjects, 
-  userName 
-}: {
-  onNavigateBack: () => void;
-  onNavigateToLogin: () => void;
-  onNavigateToSignup: () => void;
-  onLogout: () => void;
-  onNavigateToProjects: () => void;
-  userName: string | undefined;
-}) {
-  const { projectId } = useParams<{ projectId: string }>();
-  
-  if (!projectId) {
-    return <Navigate to="/projects" replace />;
-  }
-
-  return (
-    <ProjectDetails 
-      projectId={projectId}
-      onNavigateBack={onNavigateBack}
-      onNavigateToLogin={onNavigateToLogin}
-      onNavigateToSignup={onNavigateToSignup}
-      onLogout={onLogout}
-      onNavigateToProjects={onNavigateToProjects}
-      userName={userName}
-    />
-  );
-}
-
 function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isGuestMode, setIsGuestMode] = useState(false);
@@ -268,10 +233,10 @@ function AppContent() {
         />
         
         <Route 
-          path="/project/:projectId" 
+          path="/project" 
           element={
             !isLoading && isLoggedIn ? (
-              <ProjectDetailsWrapper 
+              <ProjectDetails 
                 onNavigateBack={navigateToProjects}
                 onNavigateToLogin={navigateToLogin}
                 onNavigateToSignup={navigateToSignup}

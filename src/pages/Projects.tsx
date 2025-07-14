@@ -617,7 +617,7 @@ export const Projects: React.FC<ProjectsProps> = ({
                         <Card 
                           key={project.id} 
                           className="relative group hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200"
-                          onClick={() => onNavigateToProjectDetails(project.id)}
+                          onClick={() => navigate('/project', { state: { projectId: project.id } })}
                         >
                           <CardContent className="p-6">
                             {/* Project content */}

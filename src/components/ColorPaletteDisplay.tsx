@@ -20,11 +20,15 @@ interface ColorPaletteDisplayProps {
   saveDisabled?: boolean;
   editingPaletteId?: string | null;
   saveSuccess?: boolean;
+  projectId?: string;
+  projectName?: string;
+  onBackToProject?: () => void;
+  paletteName?: string | null; // <-- add prop
 }
 
 type ColorFormat = 'oklch' | 'hsl' | 'rgb' | 'hex';
 
-export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = React.memo(({ palette, onFormatChange, onSave, isLoggedIn, refineMode = false, onEditColor, onToggleRefine, onRefineColorChange, saveDisabled, editingPaletteId, saveSuccess = false }) => {
+export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = React.memo(({ palette, onFormatChange, onSave, isLoggedIn, refineMode = false, onEditColor, onToggleRefine, onRefineColorChange, saveDisabled, editingPaletteId, saveSuccess = false, projectId, projectName, onBackToProject, paletteName }) => {
   const [format, setFormat] = useState<ColorFormat>('oklch');
 
   const handleFormatChange = useCallback((newFormat: ColorFormat) => {
@@ -172,10 +176,22 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = React.mem
   ), [handleCopyColor, convertColor, refineMode, onEditColor, onRefineColorChange]);
 
   return (
-    <Card>
+    <Card style={{ background: palette.bg }}>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Palette</CardTitle>
+          <div className="flex items-center gap-2">
+            {projectId && onBackToProject && (
+              <button
+                onClick={onBackToProject}
+                className="flex items-center gap-1 rounded-md text-sm font-medium transition-colors duration-150 text-[var(--text-muted)] hover:text-[var(--text)] focus:outline-none"
+                style={{ background: 'none', border: 'none', minWidth: 'fit-content', width: 'fit-content', height: 'fit-content', marginRight: 8, padding: '0.25rem 0.75rem' }}
+                aria-label="Back"
+              >
+                <span style={{ fontSize: '1.2em', marginRight: 4 }}>←</span> Back
+              </button>
+            )}
+            <CardTitle>{paletteName || 'Palette'}</CardTitle>
+          </div>
           <div className="flex items-center space-x-3">
             <Button
               size="sm"

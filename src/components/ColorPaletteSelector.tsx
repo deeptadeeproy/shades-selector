@@ -7,6 +7,7 @@ import { generatePalette, convertColorsToPalette, getPalette, updatePalette } fr
 import { getAuthToken } from '../utils/authUtils';
 import type { ColorConfig } from '../utils/colorUtils';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { oklch } from 'culori';
 import isEqual from 'lodash.isequal';
 
@@ -65,6 +66,12 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
   const [originalConfig, setOriginalConfig] = useState<ColorConfig | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const [paletteName, setPaletteName] = useState<string | null>(null);
+
+  // Show back button if navigated from a project
+  const projectId = location.state?.projectId;
+  const projectName = location.state?.projectName;
 
   const handleToggleRefine = () => {
     setRefineMode((v) => !v);
@@ -91,7 +98,8 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
 
   // On mount, check for paletteId in query string
   useEffect(() => {
-    const paletteId = searchParams.get('paletteId');
+    // Prefer paletteId from navigation state, fallback to query param for backward compatibility
+    const paletteId = location.state?.paletteId || searchParams.get('paletteId');
     if (paletteId) {
       setIsLoading(true);
       setEditingPaletteId(paletteId);
@@ -102,20 +110,23 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
         return;
       }
       getPalette(paletteId, token)
-        .then((result) => {
+        .then((result: any) => {
           if (result && result.colors && result.config) {
             const loadedPalette = convertColorsToPalette(result.colors);
             setPalette(loadedPalette);
             setConfig(result.config);
+            setPaletteName(result.name || null); // <-- set name
             // Deep clone for originals
             setOriginalPalette(JSON.parse(JSON.stringify(loadedPalette)));
             setOriginalConfig(JSON.parse(JSON.stringify(result.config)));
           } else {
             setError('Palette not found');
+            setPaletteName(null);
           }
         })
         .catch((err) => {
           setError(err instanceof Error ? err.message : 'Failed to load palette');
+          setPaletteName(null);
         })
         .finally(() => setIsLoading(false));
     } else {
@@ -123,6 +134,7 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
       setIsLoading(false);
       setOriginalPalette(null);
       setOriginalConfig(null);
+      setPaletteName(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
@@ -332,6 +344,13 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
     textShadow: '0 0 8px rgba(var(--text-rgb, 0, 0, 0), 0.3)'
   }), []);
 
+  // Back to project button
+  const handleBackToProject = () => {
+    if (projectId) {
+      navigate('/project', { state: { projectId } });
+    }
+  };
+
   // Show loading state or error
   if (isLoading && !palette) {
     return (
@@ -362,7 +381,7 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
   }
 
   return (
-    <div className="min-h-screen" style={backgroundStyle}>
+    <>
       {/* Navigation Bar */}
       <Navigation 
         isLoggedIn={isLoggedIn}
@@ -370,123 +389,123 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
         onNavigateToSignup={onNavigateToSignup}
         onLogout={onLogout}
         onNavigateToProjects={onNavigateToProjects}
+        showProjectsButton={true}
         userName={userName}
         onNavigateToManageAccount={() => navigate('/account')}
       />
-      
-      {/* Main Content - with top padding to account for fixed navbar */}
-      <div className="pt-24 p-6 flex items-center justify-center min-h-screen">
-        <div className="max-w-7xl mx-auto w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            {/* Color Palette Display - Left Side */}
-            <div className="lg:col-span-2">
-              <ColorPaletteDisplay 
-                palette={palette} 
-                onFormatChange={handlePaletteFormatChange}
-                onSave={isLoggedIn ? (editingPaletteId ? handleSaveChanges : handleProjectSelectionOpen) : undefined}
-                saveLabel={editingPaletteId ? (isLoading ? 'Saving...' : 'Save Changes') : undefined}
-                isLoggedIn={isLoggedIn}
-                refineMode={refineMode}
-                onEditColor={handleEditColor}
-                onToggleRefine={handleToggleRefine}
-                editingColorName={editingColorName}
-                onRefineColorChange={handleRefineColorChange}
-                saveDisabled={!!editingPaletteId && saveChangesDisabled}
-                editingPaletteId={editingPaletteId}
-                saveSuccess={saveSuccess}
-              />
-              {/* Refine Color Picker Modal */}
-              {/* Made with love - shown only on desktop below color palette */}
-              <div className="hidden lg:block mt-4 text-center">
-                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                  Made with ❤️ by{' '}
-                  <a 
-                    href="https://droyfolio.vercel.app" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-text hover:to-text transition-colors duration-200 inline-flex items-center gap-1 font-semibold"
-                    style={linkStyle}
-                    onMouseEnter={(e) => {
-                      Object.assign(e.currentTarget.style, linkHoverStyle);
-                    }}
-                    onMouseLeave={(e) => {
-                      Object.assign(e.currentTarget.style, linkLeaveStyle);
-                    }}
-                  >
-                    Deeptadeep Roy
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                      <path d="M7 17L17 7M17 7H7M17 7V17"/>
-                    </svg>
-                  </a>
-                </p>
-              </div>
-            </div>
-            
-            {/* Controls - Right Side */}
-            <div className="lg:col-span-1 flex flex-col">
-              {/* Mobile subtext above controls */}
-              <div className="lg:hidden mb-3 ml-4">
-                <p className="text-sm" style={{ color: palette['text-muted'] }}>
-                  Adjust the Sliders and toggle theme to create your perfect color palette.
-                </p>
-              </div>
-              
-              <div className="flex flex-col">
-                <ColorControls 
-                  config={config} 
-                  onConfigChange={handleConfigChange} 
-                  onColorPickerOpen={handleColorPickerOpen}
-                />
-
-                {/* Action Buttons */}
-                <div className="flex space-x-3 mt-4 justify-end lg:justify-start">
-                  <Button 
-                    onClick={handleAlertsModalOpen}
-                    variant="secondary"
-                    className="self-end w-full lg:max-w-none lg:self-auto flex-1 transition-colors duration-200"
-                    style={secondaryButtonStyle}
-                    onMouseEnter={(e) => {
-                      Object.assign(e.currentTarget.style, secondaryButtonHoverStyle);
-                    }}
-                    onMouseLeave={(e) => {
-                      Object.assign(e.currentTarget.style, secondaryButtonLeaveStyle);
-                    }}
-                  >
-                    Alerts
-                  </Button>
-                  <Button 
-                    onClick={handleCssModalOpen}
-                    className="self-end w-full lg:max-w-none lg:self-auto flex-1"
-                  >
-                    See Code
-                  </Button>
+      <div className="min-h-screen w-full" style={backgroundStyle}>
+        <div className="flex items-center justify-center min-h-screen w-full">
+          <div className="w-full max-w-7xl mx-auto px-4 mt-20">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start w-full">
+              {/* Palette Card and Back Button - Left Side */}
+              <div className="lg:col-span-2">
+                <div className="mb-8">
+                  <ColorPaletteDisplay 
+                    palette={palette} 
+                    onFormatChange={handlePaletteFormatChange}
+                    onSave={isLoggedIn ? (editingPaletteId ? handleSaveChanges : handleProjectSelectionOpen) : undefined}
+                    saveLabel={editingPaletteId ? (isLoading ? 'Saving...' : 'Save Changes') : undefined}
+                    isLoggedIn={isLoggedIn}
+                    refineMode={refineMode}
+                    onEditColor={handleEditColor}
+                    onToggleRefine={handleToggleRefine}
+                    editingColorName={editingColorName}
+                    onRefineColorChange={handleRefineColorChange}
+                    saveDisabled={!!editingPaletteId && saveChangesDisabled}
+                    editingPaletteId={editingPaletteId}
+                    saveSuccess={saveSuccess}
+                    projectId={projectId}
+                    projectName={projectName}
+                    onBackToProject={handleBackToProject}
+                    paletteName={paletteName} // <-- pass name
+                  />
+                  {/* Made with love - shown only on desktop below color palette */}
+                  <div className="hidden lg:block mt-4 text-center">
+                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                      Made with ❤️ by{' '}
+                      <a 
+                        href="https://droyfolio.vercel.app" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-text hover:to-text transition-colors duration-200 inline-flex items-center gap-1 font-semibold"
+                        style={linkStyle}
+                        onMouseEnter={(e) => {
+                          Object.assign(e.currentTarget.style, linkHoverStyle);
+                        }}
+                        onMouseLeave={(e) => {
+                          Object.assign(e.currentTarget.style, linkLeaveStyle);
+                        }}
+                      >
+                        Deeptadeep Roy
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                          <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                        </svg>
+                      </a>
+                    </p>
+                  </div>
                 </div>
-
-
-
-                {/* Made with love - shown only on mobile below buttons */}
-                <div className="lg:hidden mt-6 text-center">
-                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                    Made with ❤️ by{' '}
-                    <a 
-                      href="https://droyfolio.vercel.app" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-text hover:to-text transition-colors duration-200 inline-flex items-center gap-1 font-semibold"
-                      style={linkStyle}
+              </div>
+              {/* Controls and Buttons - Right Side */}
+              <div className="lg:col-span-1 flex flex-col">
+                {/* Mobile subtext above controls */}
+                <div className="lg:hidden mb-3 ml-4">
+                  <p className="text-sm" style={{ color: palette['text-muted'] }}>
+                    Adjust the Sliders and toggle theme to create your perfect color palette.
+                  </p>
+                </div>
+                <div className="flex flex-col">
+                  <ColorControls 
+                    config={config} 
+                    onConfigChange={handleConfigChange} 
+                    onColorPickerOpen={handleColorPickerOpen}
+                  />
+                  {/* Action Buttons */}
+                  <div className="flex space-x-3 mt-4 justify-end lg:justify-start">
+                    <Button 
+                      onClick={handleAlertsModalOpen}
+                      variant="secondary"
+                      className="self-end w-full lg:max-w-none lg:self-auto flex-1 transition-colors duration-200"
+                      style={secondaryButtonStyle}
                       onMouseEnter={(e) => {
-                        Object.assign(e.currentTarget.style, linkHoverStyle);
+                        Object.assign(e.currentTarget.style, secondaryButtonHoverStyle);
                       }}
                       onMouseLeave={(e) => {
-                        Object.assign(e.currentTarget.style, linkLeaveStyle);
+                        Object.assign(e.currentTarget.style, secondaryButtonLeaveStyle);
                       }}
                     >
-                      Deeptadeep Roy
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                        <path d="M7 17L17 7M17 7H7M17 7V17"/>
-                      </svg>
-                    </a>
-                  </p>
+                      Alerts
+                    </Button>
+                    <Button 
+                      onClick={handleCssModalOpen}
+                      className="self-end w-full lg:max-w-none lg:self-auto flex-1"
+                    >
+                      See Code
+                    </Button>
+                  </div>
+                  {/* Made with love - shown only on mobile below buttons */}
+                  <div className="lg:hidden mt-6 text-center">
+                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                      Made with ❤️ by{' '}
+                      <a 
+                        href="https://droyfolio.vercel.app" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-text hover:to-text transition-colors duration-200 inline-flex items-center gap-1 font-semibold"
+                        style={linkStyle}
+                        onMouseEnter={(e) => {
+                          Object.assign(e.currentTarget.style, linkHoverStyle);
+                        }}
+                        onMouseLeave={(e) => {
+                          Object.assign(e.currentTarget.style, linkLeaveStyle);
+                        }}
+                      >
+                        Deeptadeep Roy
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                          <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                        </svg>
+                      </a>
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -530,7 +549,7 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
           paletteConfig={config}
         />
       </Suspense>
-    </div>
+    </>
   );
 });
 

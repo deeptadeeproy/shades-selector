@@ -8,9 +8,10 @@ import { getUserProjects, updateProject, getPalette } from '../config/api';
 import type { Project } from '../config/api';
 import { getAuthToken } from '../utils/authUtils';
 import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 interface ProjectDetailsProps {
-  projectId: string;
+  projectId?: string;
   onNavigateBack: () => void;
   onNavigateToLogin: () => void;
   onNavigateToSignup: () => void;
@@ -21,12 +22,13 @@ interface ProjectDetailsProps {
 
 interface PaletteData {
   id: string;
+  name?: string; // <-- Add name field
   colors: Array<{ name: string; value: string }>;
   config: { hue: number; chroma: number; isLight: boolean };
 }
 
 export const ProjectDetails: React.FC<ProjectDetailsProps> = ({ 
-  projectId,
+  projectId: _propProjectId,
   onNavigateBack,
   onNavigateToLogin,
   onNavigateToSignup,
@@ -34,6 +36,11 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
   onNavigateToProjects,
   userName
 }) => {
+  const location = useLocation();
+  const projectId = location.state?.projectId;
+  if (!projectId) {
+    return <div style={{ color: 'var(--danger)', padding: 32 }}>No project selected. Please go back to the projects page.</div>;
+  }
   const [project, setProject] = useState<Project | null>(null);
   const [palettes, setPalettes] = useState<PaletteData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -111,6 +118,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
           const paletteData = await getPalette(paletteId, token);
           return {
             id: paletteId,
+            name: paletteData.name, // <-- Extract name from backend
             colors: paletteData.colors,
             config: paletteData.config
           };
@@ -119,6 +127,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
           // Return a placeholder palette if fetch fails
           return {
             id: paletteId,
+            name: undefined, // <-- Set name as undefined for failed fetches
             colors: [],
             config: { hue: 0, chroma: 0, isLight: false }
           };
@@ -466,7 +475,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {palettes.map((palette, index) => (
                     <Card key={palette.id} className="hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200"
-                      onClick={() => navigate(`/app?paletteId=${palette.id}`)}
+                      onClick={() => navigate('/app', { state: { paletteId: palette.id, projectId: project?.id, projectName: project?.name } })}
                     >
                       <CardContent className="p-4">
                         {/* Color grid */}
@@ -515,7 +524,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
                         {/* Palette info */}
                         <div className="space-y-1">
                           <h3 className="font-medium text-sm flex items-center gap-1" style={{ color: 'var(--text)' }}>
-                            Palette {index + 1}
+                            {palette.name || `Palette ${index + 1}`}
                             <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" className="inline align-middle opacity-70"><path d="M7 13L13 7M13 7H7M13 7V13"/></svg>
                           </h3>
                           {palette.config && (
