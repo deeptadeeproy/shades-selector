@@ -53,7 +53,6 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [paletteToDelete, setPaletteToDelete] = useState<string | null>(null);
   const [isLoadingPalette, setIsLoadingPalette] = useState(false);
-  const [loadingPaletteId, setLoadingPaletteId] = useState<string | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
@@ -221,7 +220,6 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
   const handlePaletteClick = async (paletteId: string, paletteName?: string) => {
     try {
       setIsLoadingPalette(true);
-      setLoadingPaletteId(paletteId);
       
       const token = getAuthToken();
       if (!token) {
@@ -254,7 +252,6 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
       });
     } finally {
       setIsLoadingPalette(false);
-      setLoadingPaletteId(null);
     }
   };
 
@@ -291,10 +288,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
   // Show loading state
   if (isLoading) {
     return (
-      <div 
-        className="min-h-screen"
-        style={{ backgroundColor: 'var(--bg)' }}
-      >
+      <>
         <Navigation 
           isLoggedIn={true}
           onNavigateToLogin={onNavigateToLogin}
@@ -304,14 +298,8 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
           userName={userName}
           showProjectsButton={false}
         />
-        
-        <div className="flex items-center justify-center p-6 pt-24 min-h-screen">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p style={{ color: 'var(--text)' }}>Loading project...</p>
-          </div>
-        </div>
-      </div>
+        <LoadingModal isOpen={true} message="Loading project..." />
+      </>
     );
   }
 
@@ -618,7 +606,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
       {/* Loading Modal */}
       <LoadingModal 
         isOpen={isLoadingPalette} 
-        message={`Loading ${loadingPaletteId ? palettes.find(p => p.id === loadingPaletteId)?.name || 'palette' : 'palette'}...`}
+        message="Loading palette..."
       />
     </div>
   );

@@ -194,6 +194,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
 
     setIsSavingPalette(true);
     setError(null);
+    setCreateSaveStep('saving');
 
     try {
       // First save the palette to get a palette ID
@@ -224,8 +225,10 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
     } catch (err) {
       console.error('Error saving palette to project:', err);
       setError(err instanceof Error ? err.message : 'Failed to save palette to project');
+      setCreateSaveStep('idle');
     } finally {
       setIsSavingPalette(false);
+      setCreateSaveStep('idle');
     }
   }, [selectedProjectId, projects, userToken, onSave, onClose, palette]);
 
@@ -420,20 +423,13 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
               >
                 Cancel
               </Button>
-              {/* Only show Save to Project if not in create mode */}
-              {!showCreateNewOption && (
+              {/* Only show Save to Project if not in create mode and not saving */}
+              {!showCreateNewOption && createSaveStep === 'idle' && (
                 <Button
                   onClick={handleSaveToProject}
                   disabled={isSavingPalette || !selectedProjectId}
                 >
-                  {isSavingPalette ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>Saving palette...</span>
-                    </div>
-                  ) : (
-                    'Save to Project'
-                  )}
+                  Save to Project
                 </Button>
               )}
             </div>
