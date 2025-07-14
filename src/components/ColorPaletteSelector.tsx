@@ -100,10 +100,28 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
     // Prefer paletteId from navigation state, fallback to query param for backward compatibility
     const paletteId = location.state?.paletteId || searchParams.get('paletteId');
     const paletteNameFromState = location.state?.paletteName;
+    const preloadedPaletteData = location.state?.paletteData;
+    
     if (paletteNameFromState) {
       setPaletteName(paletteNameFromState);
     }
+    
     if (paletteId) {
+      // If we have pre-loaded palette data, use it immediately
+      if (preloadedPaletteData && preloadedPaletteData.colors && preloadedPaletteData.config) {
+        const loadedPalette = convertColorsToPalette(preloadedPaletteData.colors);
+        setPalette(loadedPalette);
+        setConfig(preloadedPaletteData.config);
+        setPaletteName(preloadedPaletteData.name || paletteNameFromState || null);
+        setEditingPaletteId(paletteId);
+        // Deep clone for originals
+        setOriginalPalette(JSON.parse(JSON.stringify(loadedPalette)));
+        setOriginalConfig(JSON.parse(JSON.stringify(preloadedPaletteData.config)));
+        setIsLoading(false);
+        return;
+      }
+      
+      // Otherwise, fetch the palette data
       setIsLoading(true);
       setEditingPaletteId(paletteId);
       const token = getAuthToken();

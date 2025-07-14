@@ -34,6 +34,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingProject, setIsCreatingProject] = useState(false);
+  const [isSavingPalette, setIsSavingPalette] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
@@ -125,6 +126,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
     }
 
     setIsCreatingProject(true);
+    setIsSavingPalette(true);
     setError(null);
 
     try {
@@ -172,6 +174,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
       setError(err instanceof Error ? err.message : 'Failed to create project or save palette');
     } finally {
       setIsCreatingProject(false);
+      setIsSavingPalette(false);
     }
   }, [searchQuery, userToken, projects, palette, paletteConfig]);
 
@@ -181,7 +184,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
       return;
     }
 
-    setIsLoading(true);
+    setIsSavingPalette(true);
     setError(null);
 
     try {
@@ -214,7 +217,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
       console.error('Error saving palette to project:', err);
       setError(err instanceof Error ? err.message : 'Failed to save palette to project');
     } finally {
-      setIsLoading(false);
+      setIsSavingPalette(false);
     }
   }, [selectedProjectId, projects, userToken, onSave, onClose, palette]);
 
@@ -360,9 +363,16 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
                     setNewProjectName(searchQuery);
                     handleCreateProject();
                   }}
-                  disabled={isCreatingProject}
+                  disabled={isCreatingProject || isSavingPalette}
                 >
-                  {isCreatingProject ? 'Creating...' : (
+                  {isCreatingProject || isSavingPalette ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2" style={{ borderColor: 'var(--primary)' }}></div>
+                      <span>
+                        {isCreatingProject ? 'Creating project...' : 'Saving palette...'}
+                      </span>
+                    </div>
+                  ) : (
                     <>
                       <span className="font-light">Create Project </span>
                       <span className="font-medium text-lg mx-1">{searchQuery.length > 20 ? `${searchQuery.substring(0, 20)}...` : searchQuery}</span>
@@ -396,7 +406,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
           <Button
             variant="secondary"
             onClick={handleClose}
-            disabled={isLoading}
+            disabled={isLoading || isSavingPalette || isCreatingProject}
           >
             Cancel
           </Button>
@@ -404,9 +414,9 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
           {!showCreateNewOption && (
             <Button
               onClick={handleSaveToProject}
-              disabled={isLoading || !selectedProjectId}
+              disabled={isSavingPalette || !selectedProjectId}
             >
-              {isLoading ? 'Saving...' : 'Save to Project'}
+              {isSavingPalette ? 'Saving...' : 'Save to Project'}
             </Button>
           )}
         </div>

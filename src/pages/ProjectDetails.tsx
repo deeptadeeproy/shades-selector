@@ -4,6 +4,7 @@ import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Navigation } from '../components/Navigation';
 import { ConfirmationModal } from '../components/ConfirmationModal';
+import { LoadingModal } from '../components/LoadingModal';
 import { getUserProjects, updateProject, getPalette, deletePalette } from '../config/api';
 import type { Project } from '../config/api';
 import { getAuthToken } from '../utils/authUtils';
@@ -51,6 +52,8 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
   const [isDeletingPalette, setIsDeletingPalette] = useState<string | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [paletteToDelete, setPaletteToDelete] = useState<string | null>(null);
+  const [isLoadingPalette, setIsLoadingPalette] = useState(false);
+  const [loadingPaletteId, setLoadingPaletteId] = useState<string | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
@@ -213,6 +216,46 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
     e.stopPropagation();
     setPaletteToDelete(paletteId);
     setDeleteModalOpen(true);
+  };
+
+  const handlePaletteClick = async (paletteId: string, paletteName?: string) => {
+    try {
+      setIsLoadingPalette(true);
+      setLoadingPaletteId(paletteId);
+      
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      // Fetch the palette data
+      const paletteData = await getPalette(paletteId, token);
+      
+      // Navigate to app page with the palette data
+      navigate('/app', { 
+        state: { 
+          paletteId: paletteId, 
+          projectId: project?.id, 
+          projectName: project?.name, 
+          paletteName: paletteName || paletteData.name,
+          paletteData: paletteData // Pass the full palette data
+        } 
+      });
+    } catch (error) {
+      console.error('Error loading palette:', error);
+      // If there's an error, still navigate but without the palette data
+      navigate('/app', { 
+        state: { 
+          paletteId: paletteId, 
+          projectId: project?.id, 
+          projectName: project?.name, 
+          paletteName: paletteName 
+        } 
+      });
+    } finally {
+      setIsLoadingPalette(false);
+      setLoadingPaletteId(null);
+    }
   };
 
   const handleConfirmDeletePalette = async () => {
@@ -475,7 +518,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {palettes.map((palette, index) => (
                     <Card key={palette.id} className="hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200"
-                      onClick={() => navigate('/app', { state: { paletteId: palette.id, projectId: project?.id, projectName: project?.name, paletteName: palette.name } })}
+                      onClick={() => handlePaletteClick(palette.id, palette.name)}
                     >
                       <CardContent className="p-4">
                         {/* Color grid */}
@@ -570,6 +613,12 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
         message="Are you sure you want to delete this palette? This action cannot be undone."
         confirmText="Delete Palette"
         isLoading={isDeletingPalette === paletteToDelete}
+      />
+
+      {/* Loading Modal */}
+      <LoadingModal 
+        isOpen={isLoadingPalette} 
+        message={`Loading ${loadingPaletteId ? palettes.find(p => p.id === loadingPaletteId)?.name || 'palette' : 'palette'}...`}
       />
     </div>
   );
