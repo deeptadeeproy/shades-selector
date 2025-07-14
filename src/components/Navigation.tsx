@@ -28,10 +28,17 @@ export const Navigation: React.FC<NavigationProps> = React.memo(({
 }) => {
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
+  const accountButtonRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (!isAccountMenuOpen) return;
     function handleClickOutside(event: MouseEvent) {
-      if (accountMenuRef.current && !accountMenuRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const menu = accountMenuRef.current;
+      const button = accountButtonRef.current;
+      if (
+        menu && !menu.contains(target) &&
+        button && !button.contains(target)
+      ) {
         setIsAccountMenuOpen(false);
       }
     }
@@ -89,11 +96,7 @@ export const Navigation: React.FC<NavigationProps> = React.memo(({
             </div>
 
             {/* Center - User name if logged in */}
-            {isLoggedIn && userName && (
-              <div className="flex-1 flex justify-center">
-                <span className="text-base font-medium" style={{ color: 'var(--text-muted)' }}>{userName}</span>
-              </div>
-            )}
+            {/* (User name removed from center) */}
 
             {/* Right side - Auth buttons or user menu */}
             <div className="flex items-center space-x-4 justify-end">
@@ -190,12 +193,13 @@ export const Navigation: React.FC<NavigationProps> = React.memo(({
                       borderColor: 'var(--border)'
                     }}
                     onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
+                    ref={accountButtonRef}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <circle cx="12" cy="8" r="5"/>
                       <path d="M20 21a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h3l2-2h2l2 2h3a2 2 0 0 1 2 2Z"/>
                     </svg>
-                    Account
+                    {userName || 'Account'}
                     <svg 
                       width="12" 
                       height="12" 

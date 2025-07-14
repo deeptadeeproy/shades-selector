@@ -322,7 +322,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
         
         <div className="flex items-center justify-center p-6 pt-24 min-h-screen">
           <div className="w-full max-w-md">
-            <Card>
+            <Card style={{ border: 'none', backgroundColor: 'var(--bg-light)' }}>
               <CardHeader className="text-center">
                 <CardTitle style={{ color: 'var(--text)' }}>Error Loading Project</CardTitle>
                 <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -368,7 +368,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
       <div className="pt-24 px-6">
         <div className="max-w-6xl mx-auto w-full">
           {/* Sticky header */}
-          <div className="flex items-center gap-4 mb-2 sticky top-0 z-10" style={{ background: 'var(--bg)' }}>
+          <div className="flex items-center gap-4 mb-8 sticky top-0 z-10" style={{ background: 'var(--bg)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
               <Button 
                 variant="secondary"
@@ -473,7 +473,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
               </div>
               
               {project.palettes.length === 0 ? (
-                <Card>
+                <Card style={{ border: 'none', backgroundColor: 'var(--bg-light)' }}>
                   <CardContent className="flex flex-col items-center justify-center min-h-[220px] gap-4 text-center">
                     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: 'var(--text-muted)' }}>
                       <circle cx="13.5" cy="6.5" r=".5"/>

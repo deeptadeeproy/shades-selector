@@ -29,7 +29,7 @@ export const Login: React.FC<LoginProps> = ({ onNavigateToSignup, onLogin }) => 
           </svg>
           Back to app
         </button>
-        <Card>
+        <Card style={{ border: 'none', backgroundColor: 'var(--bg-light)' }}>
           <CardContent className="p-6">
             <LoginForm
               onLogin={onLogin}

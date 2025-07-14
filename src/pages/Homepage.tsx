@@ -52,12 +52,16 @@ export const Homepage: React.FC<HomepageProps> = ({
 
   const lightMode = typeof window !== 'undefined' && typeof document !== 'undefined' && document.body.classList.contains('light');
 
+  // Invert background and form colors in light mode
+  const pageBg = lightMode ? 'var(--bg)' : 'var(--bg)';
+  const formBg = lightMode ? 'var(--bg-light)' : 'rgba(var(--bg-light-rgb), 0.1)';
+
   // Show success message if signup was successful
   if (isSuccess) {
     return (
       <div 
         className="min-h-screen flex items-center justify-center p-6"
-        style={{ backgroundColor: lightMode ? 'var(--bg-light)' : 'var(--bg)' }}
+        style={{ backgroundColor: pageBg }}
       >
         <div className="max-w-6xl mx-auto w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -90,10 +94,7 @@ export const Homepage: React.FC<HomepageProps> = ({
             
             {/* Right Side - Success Message */}
             <div className="w-full max-w-md mx-auto">
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-8 border" style={{
-                borderColor: 'var(--border)',
-                backgroundColor: lightMode ? 'var(--bg)' : 'rgba(var(--bg-light-rgb), 0.1)'
-              }}>
+              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-8" style={{ backgroundColor: formBg }}>
                 <Card>
                   <CardHeader className="text-center">
                     <CardTitle style={{ color: 'var(--text)' }}>Account Created!</CardTitle>
@@ -130,7 +131,7 @@ export const Homepage: React.FC<HomepageProps> = ({
   return (
     <div 
       className="min-h-screen flex items-center justify-center p-6"
-      style={{ backgroundColor: lightMode ? 'var(--bg-light)' : 'var(--bg)' }}
+      style={{ backgroundColor: pageBg }}
     >
       <div className="max-w-6xl mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -163,10 +164,7 @@ export const Homepage: React.FC<HomepageProps> = ({
           
           {/* Right Side - Auth Forms */}
           <div className="w-full max-w-md mx-auto">
-            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-8 border" style={{
-              borderColor: 'var(--border)',
-              backgroundColor: lightMode ? 'var(--bg)' : 'rgba(var(--bg-light-rgb), 0.1)'
-            }}>
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-8" style={{ backgroundColor: formBg }}>
               {showSignup ? (
                 <SignupForm
                   onSignup={onSignup}
@@ -182,14 +180,13 @@ export const Homepage: React.FC<HomepageProps> = ({
               )}
               
               {/* Use as Guest Button */}
-              <div className="mt-8 pt-6 border-t" style={{ borderColor: 'var(--border)' }}>
+              <div className="mt-8 pt-6" /* border removed */>
                 <Button
                   onClick={onUseAsGuest}
                   variant="secondary"
                   className="w-full flex items-center justify-center gap-2"
                   style={{
                     color: 'var(--text-muted)',
-                    borderColor: 'var(--border)',
                     backgroundColor: 'transparent'
                   }}
                 >

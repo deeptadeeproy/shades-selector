@@ -319,7 +319,7 @@ export const Projects: React.FC<ProjectsProps> = ({
         
         <div className="flex items-center justify-center p-6 pt-24 min-h-screen">
           <div className="w-full max-w-md">
-            <Card>
+            <Card style={{ border: 'none', backgroundColor: 'var(--bg-light)' }}>
               <CardHeader className="text-center">
                 <CardTitle style={{ color: 'var(--text)' }}>Error Loading Projects</CardTitle>
                 <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -370,7 +370,7 @@ export const Projects: React.FC<ProjectsProps> = ({
         
         <div className="flex items-center justify-center p-6 pt-24 min-h-screen">
           <div className="w-full max-w-md">
-            <Card>
+            <Card style={{ border: 'none', backgroundColor: 'var(--bg-light)' }}>
               <CardHeader className="text-center">
                 <CardTitle style={{ color: 'var(--text)' }}>No Projects Yet</CardTitle>
                 <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -423,7 +423,7 @@ export const Projects: React.FC<ProjectsProps> = ({
         />
         <div className="flex items-center justify-center p-6 pt-24 min-h-screen">
           <div className="w-full max-w-md">
-            <Card>
+            <Card style={{ border: 'none', backgroundColor: 'var(--bg-light)' }}>
               <CardHeader className="text-center">
                 <CardTitle style={{ color: 'var(--text)' }}>Create New Project</CardTitle>
                 <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -620,6 +620,7 @@ export const Projects: React.FC<ProjectsProps> = ({
                           key={project.id} 
                           className="relative group hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200"
                           onClick={() => navigate('/project', { state: { projectId: project.id } })}
+                          style={{ border: 'none', backgroundColor: 'var(--bg-light)' }}
                         >
                           <CardContent className="p-6">
                             {/* Project content */}

@@ -30,7 +30,7 @@ export const Signup: React.FC<SignupProps> = ({ onNavigateToLogin, onSignup, onS
           </svg>
           Back to app
         </button>
-        <Card>
+        <Card style={{ border: 'none', backgroundColor: 'var(--bg-light)' }}>
           <CardContent className="p-6">
             <SignupForm
               onSignup={onSignup}
