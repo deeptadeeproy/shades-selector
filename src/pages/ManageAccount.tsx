@@ -54,50 +54,52 @@ export const ManageAccount: React.FC<ManageAccountProps> = ({ user, onUpdateName
   };
 
   return (
-    <div className="max-w-lg mx-auto mt-16 p-8 rounded-lg shadow-lg" style={{ background: 'var(--bg-light)', color: 'var(--text)' }}>
-      <h2 className="text-2xl font-semibold mb-6">Manage Account</h2>
-      <form onSubmit={handleSave} className="space-y-4">
-        <div>
-          <label htmlFor="name" className="block mb-1 text-sm font-medium">Name</label>
-          <Input
-            id="name"
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            required
-            maxLength={100}
-            placeholder="Enter your name"
-          />
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg)' }}>
+      <div className="max-w-lg w-full mx-auto p-8 rounded-lg shadow-lg" style={{ background: 'var(--bg-light)', color: 'var(--text)' }}>
+        <h2 className="text-2xl font-semibold mb-6">Manage Account</h2>
+        <form onSubmit={handleSave} className="space-y-4">
+          <div>
+            <label htmlFor="name" className="block mb-1 text-sm font-medium">Name</label>
+            <Input
+              id="name"
+              type="text"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              required
+              maxLength={100}
+              placeholder="Enter your name"
+            />
+          </div>
+          <Button type="submit" disabled={isSaving || name === user.name} className="w-full">
+            {isSaving ? 'Saving...' : 'Save Changes'}
+          </Button>
+          {success && <div className="text-green-600 text-sm mt-2">{success}</div>}
+          {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
+        </form>
+        <hr className="my-8" />
+        <div className="flex gap-3">
+          <Button type="button" variant="secondary" className="flex-1" onClick={() => window.history.back()}>
+            Back
+          </Button>
+          <Button type="button" variant="secondary" className="flex-1" onClick={() => setShowConfirm(true)} style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }}>
+            Delete Account
+          </Button>
         </div>
-        <Button type="submit" disabled={isSaving || name === user.name} className="w-full">
-          {isSaving ? 'Saving...' : 'Save Changes'}
-        </Button>
-        {success && <div className="text-green-600 text-sm mt-2">{success}</div>}
-        {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
-      </form>
-      <hr className="my-8" />
-      <div className="flex gap-3">
-        <Button type="button" variant="secondary" className="flex-1" onClick={() => window.history.back()}>
-          Back
-        </Button>
-        <Button type="button" variant="secondary" className="flex-1" onClick={() => setShowConfirm(true)} style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }}>
-          Delete Account
-        </Button>
+        {showConfirm && (
+          <ConfirmationModal
+            isOpen={showConfirm}
+            onClose={() => setShowConfirm(false)}
+            onConfirm={handleDelete}
+            title="Delete Account"
+            message="Are you sure you want to delete your account? This will permanently delete all your projects and their palettes. This action cannot be undone."
+            confirmText="Delete Account"
+            isDestructive={true}
+            isLoading={isDeleting}
+            passwordLabel="Enter your password to confirm"
+            passwordError={passwordError || undefined}
+          />
+        )}
       </div>
-      {showConfirm && (
-        <ConfirmationModal
-          isOpen={showConfirm}
-          onClose={() => setShowConfirm(false)}
-          onConfirm={handleDelete}
-          title="Delete Account"
-          message="Are you sure you want to delete your account? This will permanently delete all your projects and their palettes. This action cannot be undone."
-          confirmText="Delete Account"
-          isDestructive={true}
-          isLoading={isDeleting}
-          passwordLabel="Enter your password to confirm"
-          passwordError={passwordError || undefined}
-        />
-      )}
     </div>
   );
 }; 

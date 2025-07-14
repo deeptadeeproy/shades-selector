@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { ColorPaletteSelector } from './components/ColorPaletteSelector';
 import { PaletteManager } from './components/PaletteManager';
 import { Login } from './pages/Login';
@@ -22,6 +22,19 @@ function AppContent() {
   const [, setAuthError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Global theme persistence for all pages except /app (palette page)
+  useEffect(() => {
+    if (location.pathname !== '/app') {
+      const stored = localStorage.getItem('themeMode');
+      if (stored === 'light') {
+        document.body.classList.add('light');
+      } else {
+        document.body.classList.remove('light');
+      }
+    }
+  }, [location.pathname]);
 
   // Check for existing token on app load
   useEffect(() => {
