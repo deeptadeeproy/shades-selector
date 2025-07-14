@@ -264,177 +264,180 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
             </svg>
             <div className="text-lg font-semibold mb-2 text-muted" style={{ color: 'var(--text-muted)' }}>{successMessage}</div>
           </div>
-        ) : (
-        <>
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text)' }}>
-            Save Palette to Project
-          </h2>
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Select an existing project or create a new one to save your palette.
-          </p>
-        </div>
-
-        {/* Search Input */}
-        <div className="mb-4">
-          <Input
-            type="text"
-            placeholder="Search projects..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full"
-          />
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-4 p-3 rounded-lg text-sm" style={{ 
-            backgroundColor: 'rgba(var(--danger-rgb, 239, 68, 68), 0.1)',
-            color: 'var(--danger)',
-            border: '1px solid rgba(var(--danger-rgb, 239, 68, 68), 0.2)'
-          }}>
-            {error}
-          </div>
-        )}
-
-        {/* Projects List */}
-        <div className="mb-4 max-h-64 overflow-y-auto custom-scrollbar">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: 'var(--primary)' }}></div>
-              <span className="ml-2 text-sm" style={{ color: 'var(--text-muted)' }}>Loading projects...</span>
+        ) : createSaveStep === 'creating' || createSaveStep === 'saving' ? (
+          <div className="flex flex-col items-center justify-center min-h-[200px]">
+            <div className="p-3 rounded-lg border border-dashed flex items-center justify-center w-full transition-colors text-base font-light min-h-[56px] mx-auto" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-light)', color: 'var(--text-muted)', maxWidth: 400 }}>
+              <div className="flex items-center gap-2 mx-auto">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2" style={{ borderColor: 'var(--primary)' }}></div>
+                <span>{createSaveStep === 'creating' ? 'Creating Project...' : 'Saving palette...'}</span>
+              </div>
             </div>
-          ) : displayedProjects.length === 0 && !searchQuery ? (
-            <div className="text-center py-8">
+          </div>
+        ) : (
+          <>
+            {/* Normal modal content here (input, project list, buttons) */}
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text)' }}>
+                Save Palette to Project
+              </h2>
               <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                No projects found. Create your first project to get started.
+                Select an existing project or create a new one to save your palette.
               </p>
             </div>
-          ) : (
-            <div className="space-y-2">
-              {displayedProjects.map((project) => (
-                <div
-                  key={project.id}
-                  className={`p-3 rounded-lg cursor-pointer transition-colors border ${
-                    selectedProjectId === project.id 
-                      ? 'border-transparent' 
-                      : 'border-transparent'
-                  }`}
-                  style={{
-                    backgroundColor: selectedProjectId === project.id 
-                      ? 'rgba(var(--primary-rgb, 59, 130, 246), 0.1)' 
-                      : 'var(--bg-light)',
-                    borderColor: selectedProjectId === project.id ? 'transparent' : undefined,
-                  }}
-                  onMouseEnter={e => {
-                    if (selectedProjectId !== project.id) {
-                      (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)';
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    if (selectedProjectId !== project.id) {
-                      (e.currentTarget as HTMLDivElement).style.borderColor = 'transparent';
-                    }
-                  }}
-                  onClick={() => setSelectedProjectId(project.id)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-medium" style={{ color: 'var(--text)' }}>
-                        {project.name.length > 20 ? `${project.name.substring(0, 20)}...` : project.name}
-                      </h3>
-                      {project.description && (
-                        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-                          {project.description}
-                        </p>
-                      )}
-                      <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                        {project.palettes.length} palette{project.palettes.length !== 1 ? 's' : ''}
-                      </p>
-                    </div>
-                    {selectedProjectId === project.id && (
-                      <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--primary)' }}>
-                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
+
+            {/* Search Input */}
+            <div className="mb-4">
+              <Input
+                type="text"
+                placeholder="Search projects..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full"
+              />
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 p-3 rounded-lg text-sm" style={{ 
+                backgroundColor: 'rgba(var(--danger-rgb, 239, 68, 68), 0.1)',
+                color: 'var(--danger)',
+                border: '1px solid rgba(var(--danger-rgb, 239, 68, 68), 0.2)'
+              }}>
+                {error}
+              </div>
+            )}
+
+            {/* Projects List */}
+            <div className="mb-4 max-h-64 overflow-y-auto custom-scrollbar">
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: 'var(--primary)' }}></div>
+                  <span className="ml-2 text-sm" style={{ color: 'var(--text-muted)' }}>Loading projects...</span>
                 </div>
-              ))}
-
-              {/* Create New Project Option */}
-              {showCreateNewOption && (
-                (createSaveStep === 'creating' || createSaveStep === 'saving') ? (
-                  <div className="p-3 rounded-lg border border-dashed flex items-center justify-center w-full transition-colors text-base font-light min-h-[56px]" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-light)', color: 'var(--text-muted)' }}>
-                    <div className="flex items-center gap-2 mx-auto">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2" style={{ borderColor: 'var(--primary)' }}></div>
-                      <span>{createSaveStep === 'creating' ? 'Creating Project...' : 'Saving palette...'}</span>
+              ) : displayedProjects.length === 0 && !searchQuery ? (
+                <div className="text-center py-8">
+                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                    No projects found. Create your first project to get started.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {displayedProjects.map((project) => (
+                    <div
+                      key={project.id}
+                      className={`p-3 rounded-lg cursor-pointer transition-colors border ${
+                        selectedProjectId === project.id 
+                          ? 'border-transparent' 
+                          : 'border-transparent'
+                      }`}
+                      style={{
+                        backgroundColor: selectedProjectId === project.id 
+                          ? 'rgba(var(--primary-rgb, 59, 130, 246), 0.1)' 
+                          : 'var(--bg-light)',
+                        borderColor: selectedProjectId === project.id ? 'transparent' : undefined,
+                      }}
+                      onMouseEnter={e => {
+                        if (selectedProjectId !== project.id) {
+                          (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)';
+                        }
+                      }}
+                      onMouseLeave={e => {
+                        if (selectedProjectId !== project.id) {
+                          (e.currentTarget as HTMLDivElement).style.borderColor = 'transparent';
+                        }
+                      }}
+                      onClick={() => setSelectedProjectId(project.id)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium" style={{ color: 'var(--text)' }}>
+                            {project.name.length > 20 ? `${project.name.substring(0, 20)}...` : project.name}
+                          </h3>
+                          {project.description && (
+                            <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+                              {project.description}
+                            </p>
+                          )}
+                          <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                            {project.palettes.length} palette{project.palettes.length !== 1 ? 's' : ''}
+                          </p>
+                        </div>
+                        {selectedProjectId === project.id && (
+                          <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--primary)' }}>
+                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <button
-                    className="p-3 rounded-lg border border-dashed flex items-center justify-center w-full transition-colors text-base font-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                    style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-light)', color: 'var(--text-muted)' }}
-                    onClick={() => {
-                      setNewProjectName(searchQuery);
-                      handleCreateProject();
-                    }}
-                    disabled={isCreatingProject || isSavingPalette}
-                  >
-                    <span className="font-light">Create Project </span>
-                    <span className="font-medium text-lg mx-1">{searchQuery.length > 20 ? `${searchQuery.substring(0, 20)}...` : searchQuery}</span>
-                    <span className="font-light"> and save palette</span>
-                  </button>
-                )
-              )}
+                  ))}
 
-              {/* Show More Projects Option */}
-              {showAllProjects && !searchQuery && (
-                <div className="p-3 rounded-lg border border-dashed cursor-pointer hover:bg-opacity-50 transition-colors" 
-                     style={{ borderColor: 'var(--border)', backgroundColor: 'rgba(var(--border-rgb, 0, 0, 0), 0.05)' }}
-                     onClick={handleShowAllProjects}>
-                  <div className="flex items-center justify-center space-x-2">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                    <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
-                      Search more ({filteredProjects.length - 5} more projects)
-                    </span>
-                  </div>
+                  {/* Create New Project Option */}
+                  {showCreateNewOption && (
+                    createSaveStep !== 'idle' ? null : (
+                      <button
+                        className="p-3 rounded-lg border border-dashed flex items-center justify-center w-full transition-colors text-base font-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                        style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-light)', color: 'var(--text-muted)' }}
+                        onClick={() => {
+                          setNewProjectName(searchQuery);
+                          handleCreateProject();
+                        }}
+                        disabled={isCreatingProject || isSavingPalette}
+                      >
+                        <span className="font-light">Create Project </span>
+                        <span className="font-medium text-lg mx-1">{searchQuery.length > 20 ? `${searchQuery.substring(0, 20)}...` : searchQuery}</span>
+                        <span className="font-light"> and save palette</span>
+                      </button>
+                    )
+                  )}
+
+                  {/* Show More Projects Option */}
+                  {showAllProjects && !searchQuery && (
+                    <div className="p-3 rounded-lg border border-dashed cursor-pointer hover:bg-opacity-50 transition-colors" 
+                         style={{ borderColor: 'var(--border)', backgroundColor: 'rgba(var(--border-rgb, 0, 0, 0), 0.05)' }}
+                         onClick={handleShowAllProjects}>
+                      <div className="flex items-center justify-center space-x-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
+                          Search more ({filteredProjects.length - 5} more projects)
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex justify-end space-x-3">
-          <Button
-            variant="secondary"
-            onClick={handleClose}
-            disabled={isLoading || isSavingPalette || isCreatingProject}
-          >
-            Cancel
-          </Button>
-          {/* Only show Save to Project if not in create mode */}
-          {!showCreateNewOption && (
-            <Button
-              onClick={handleSaveToProject}
-              disabled={isSavingPalette || !selectedProjectId}
-            >
-              {isSavingPalette ? (
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Saving palette...</span>
-                </div>
-              ) : (
-                'Save to Project'
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-3">
+              <Button
+                variant="secondary"
+                onClick={handleClose}
+                disabled={isLoading || isSavingPalette || isCreatingProject}
+              >
+                Cancel
+              </Button>
+              {/* Only show Save to Project if not in create mode */}
+              {!showCreateNewOption && (
+                <Button
+                  onClick={handleSaveToProject}
+                  disabled={isSavingPalette || !selectedProjectId}
+                >
+                  {isSavingPalette ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Saving palette...</span>
+                    </div>
+                  ) : (
+                    'Save to Project'
+                  )}
+                </Button>
               )}
-            </Button>
-          )}
-        </div>
-        </>
+            </div>
+          </>
         )}
       </div>
     </Modal>
