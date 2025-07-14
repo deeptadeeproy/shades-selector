@@ -30,7 +30,7 @@ export const ColorControls: React.FC<ColorControlsProps> = React.memo(({ config,
     setLocalChroma(config.chroma);
   }, [config.hue, config.chroma]);
 
-  // Memoized gradient calculations
+  // Memoized gradient calculations - use local values for real-time gradient updates during dragging
   const hueGradient = useMemo(() => 
     createHueGradient(localChroma, 0.5), 
     [localChroma]
@@ -41,14 +41,18 @@ export const ColorControls: React.FC<ColorControlsProps> = React.memo(({ config,
     [localHue]
   );
 
-  // Handle slider changes during dragging (update local state only)
+  // Handle slider changes during dragging (update local state and generate colors in real-time)
   const handleHueChange = useCallback((value: number[]) => {
-    setLocalHue(value[0]);
-  }, []);
+    const newHue = value[0];
+    setLocalHue(newHue);
+    onConfigChange({ ...config, hue: newHue });
+  }, [config, onConfigChange]);
 
   const handleChromaChange = useCallback((value: number[]) => {
-    setLocalChroma(value[0]);
-  }, []);
+    const newChroma = value[0];
+    setLocalChroma(newChroma);
+    onConfigChange({ ...config, chroma: newChroma });
+  }, [config, onConfigChange]);
 
   // Handle slider commit (when user releases the slider)
   const handleHueCommit = useCallback((value: number[]) => {
