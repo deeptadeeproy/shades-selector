@@ -369,9 +369,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
                   {isCreatingProject || isSavingPalette ? (
                     <div className="flex items-center gap-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2" style={{ borderColor: 'var(--primary)' }}></div>
-                      <span>
-                        {isCreatingProject ? 'Creating project...' : 'Saving palette...'}
-                      </span>
+                      <span>Saving palette...</span>
                     </div>
                   ) : (
                     <>
@@ -417,7 +415,14 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
               onClick={handleSaveToProject}
               disabled={isSavingPalette || !selectedProjectId}
             >
-              {isSavingPalette ? 'Saving...' : 'Save to Project'}
+              {isSavingPalette ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>Saving palette...</span>
+                </div>
+              ) : (
+                'Save to Project'
+              )}
             </Button>
           )}
         </div>
