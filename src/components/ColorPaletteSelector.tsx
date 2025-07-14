@@ -118,10 +118,9 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
         setOriginalPalette(JSON.parse(JSON.stringify(loadedPalette)));
         setOriginalConfig(JSON.parse(JSON.stringify(preloadedPaletteData.config)));
         setIsLoading(false);
-        return;
+        return; // <--- Prevent further fetching if we have preloaded data
       }
-      
-      // Otherwise, fetch the palette data
+      // Only fetch from backend if we do NOT have preloadedPaletteData
       setIsLoading(true);
       setEditingPaletteId(paletteId);
       const token = getAuthToken();
@@ -157,8 +156,7 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
       setOriginalConfig(null);
       setPaletteName(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, [searchParams, location.state]);
 
   // Only enable Save Changes if palette or config has changed AND not in refine mode
   const saveChangesDisabled = editingPaletteId && originalPalette && originalConfig
@@ -279,7 +277,12 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
 
   // Generate initial palette on component mount
   useEffect(() => {
-    generatePaletteFromAPI(config);
+    // Only generate a new palette if not editing/loading an existing one
+    const paletteId = location.state?.paletteId || searchParams.get('paletteId');
+    const preloadedPaletteData = location.state?.paletteData;
+    if (!paletteId && !preloadedPaletteData) {
+      generatePaletteFromAPI(config);
+    }
   }, []); // Only run once on mount
 
   // Memoized styles and values
@@ -312,6 +315,7 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
   // Apply colors to CSS custom properties in real-time
   useEffect(() => {
     if (!palette) return;
+    console.log('Applying palette to CSS variables:', palette);
     
     const root = document.documentElement;
     

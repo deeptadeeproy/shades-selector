@@ -11,10 +11,11 @@ export const PaletteManager: React.FC<PaletteManagerProps> = ({ children }) => {
   useEffect(() => {
     const root = document.documentElement;
     
-    // Check if we're on the main page (ColorPaletteSelector)
+    // Check if we're on the main page (ColorPaletteSelector) or palette editing page (/app)
     const isMainPage = location.pathname === '/';
+    const isPalettePage = location.pathname === '/app';
     
-    if (!isMainPage) {
+    if (!isMainPage && !isPalettePage) {
       // Clear any dynamic palette colors and reset to default
       // This ensures the default palette from CSS is used
       const dynamicPaletteKeys = [
