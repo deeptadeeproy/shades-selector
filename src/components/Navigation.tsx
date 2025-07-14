@@ -105,7 +105,7 @@ export const Navigation: React.FC<NavigationProps> = React.memo(({
                   onMouseOut={e => (e.currentTarget.style.color = 'var(--text-muted)')}
                   onClick={() => navigate('/app')}
                 >
-                  Palette
+                  + New palette
                 </button>
               )}
               {isLoggedIn && showProjectsButton && (

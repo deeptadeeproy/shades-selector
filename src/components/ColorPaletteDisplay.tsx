@@ -21,14 +21,13 @@ interface ColorPaletteDisplayProps {
   editingPaletteId?: string | null;
   saveSuccess?: boolean;
   projectId?: string;
-  projectName?: string;
   onBackToProject?: () => void;
   paletteName?: string | null; // <-- add prop
 }
 
 type ColorFormat = 'oklch' | 'hsl' | 'rgb' | 'hex';
 
-export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = React.memo(({ palette, onFormatChange, onSave, isLoggedIn, refineMode = false, onEditColor, onToggleRefine, onRefineColorChange, saveDisabled, editingPaletteId, saveSuccess = false, projectId, projectName, onBackToProject, paletteName }) => {
+export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = React.memo(({ palette, onFormatChange, onSave, isLoggedIn, refineMode = false, onEditColor, onToggleRefine, onRefineColorChange, saveDisabled, editingPaletteId, saveSuccess = false, projectId, onBackToProject, paletteName }) => {
   const [format, setFormat] = useState<ColorFormat>('oklch');
 
   const handleFormatChange = useCallback((newFormat: ColorFormat) => {
@@ -196,7 +195,7 @@ export const ColorPaletteDisplay: React.FC<ColorPaletteDisplayProps> = React.mem
             <Button
               size="sm"
               variant="secondary"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 shadow-none text-[var(--text-muted)] hover:text-[var(--text)]"
               onClick={onToggleRefine}
               style={{ border: 'none' }}
             >

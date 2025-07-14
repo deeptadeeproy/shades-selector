@@ -71,7 +71,6 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
 
   // Show back button if navigated from a project
   const projectId = location.state?.projectId;
-  const projectName = location.state?.projectName;
 
   const handleToggleRefine = () => {
     setRefineMode((v) => !v);
@@ -100,6 +99,10 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
   useEffect(() => {
     // Prefer paletteId from navigation state, fallback to query param for backward compatibility
     const paletteId = location.state?.paletteId || searchParams.get('paletteId');
+    const paletteNameFromState = location.state?.paletteName;
+    if (paletteNameFromState) {
+      setPaletteName(paletteNameFromState);
+    }
     if (paletteId) {
       setIsLoading(true);
       setEditingPaletteId(paletteId);
@@ -115,7 +118,7 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
             const loadedPalette = convertColorsToPalette(result.colors);
             setPalette(loadedPalette);
             setConfig(result.config);
-            setPaletteName(result.name || null); // <-- set name
+            setPaletteName(result.name || paletteNameFromState || null); // Prefer backend name, fallback to state
             // Deep clone for originals
             setOriginalPalette(JSON.parse(JSON.stringify(loadedPalette)));
             setOriginalConfig(JSON.parse(JSON.stringify(result.config)));
@@ -396,6 +399,18 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
       <div className="min-h-screen w-full" style={backgroundStyle}>
         <div className="flex items-center justify-center min-h-screen w-full">
           <div className="w-full max-w-7xl mx-auto px-4 mt-20">
+            {projectId && (
+              <div className="flex mb-2">
+                <button
+                  onClick={handleBackToProject}
+                  className="flex items-center gap-1 rounded-md text-sm font-medium transition-colors duration-150 text-[var(--text-muted)] hover:text-[var(--text)] focus:outline-none"
+                  style={{ background: 'none', border: 'none', minWidth: 'fit-content', width: 'fit-content', height: 'fit-content', marginRight: 8, padding: '0.25rem 0.75rem' }}
+                  aria-label="Back"
+                >
+                  <span style={{ fontSize: '1.2em', marginRight: 4 }}>←</span> Back
+                </button>
+              </div>
+            )}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start w-full">
               {/* Palette Card and Back Button - Left Side */}
               <div className="lg:col-span-2">
@@ -414,9 +429,6 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
                     saveDisabled={!!editingPaletteId && saveChangesDisabled}
                     editingPaletteId={editingPaletteId}
                     saveSuccess={saveSuccess}
-                    projectId={projectId}
-                    projectName={projectName}
-                    onBackToProject={handleBackToProject}
                     paletteName={paletteName} // <-- pass name
                   />
                   {/* Made with love - shown only on desktop below color palette */}
@@ -458,6 +470,7 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
                     config={config} 
                     onConfigChange={handleConfigChange} 
                     onColorPickerOpen={handleColorPickerOpen}
+                    bgColor={palette.bg}
                   />
                   {/* Action Buttons */}
                   <div className="flex space-x-3 mt-4 justify-end lg:justify-start">

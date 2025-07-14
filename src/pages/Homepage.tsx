@@ -3,6 +3,7 @@ import { Button } from '../components/ui/button';
 import { LoginForm } from '../components/LoginForm';
 import { SignupForm } from '../components/SignupForm';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import '../styles/defaultPalette.css';
 
 interface HomepageProps {
   onLogin: (email: string, password: string) => void;
@@ -49,12 +50,14 @@ export const Homepage: React.FC<HomepageProps> = ({
     }, 1000);
   };
 
+  const lightMode = typeof window !== 'undefined' && typeof document !== 'undefined' && document.body.classList.contains('light');
+
   // Show success message if signup was successful
   if (isSuccess) {
     return (
       <div 
         className="min-h-screen flex items-center justify-center p-6"
-        style={{ backgroundColor: 'var(--bg)' }}
+        style={{ backgroundColor: lightMode ? 'var(--bg-light)' : 'var(--bg)' }}
       >
         <div className="max-w-6xl mx-auto w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -89,7 +92,7 @@ export const Homepage: React.FC<HomepageProps> = ({
             <div className="w-full max-w-md mx-auto">
               <div className="bg-white/5 backdrop-blur-sm rounded-xl p-8 border" style={{
                 borderColor: 'var(--border)',
-                backgroundColor: 'rgba(var(--bg-light-rgb), 0.1)'
+                backgroundColor: lightMode ? 'var(--bg)' : 'rgba(var(--bg-light-rgb), 0.1)'
               }}>
                 <Card>
                   <CardHeader className="text-center">
@@ -127,7 +130,7 @@ export const Homepage: React.FC<HomepageProps> = ({
   return (
     <div 
       className="min-h-screen flex items-center justify-center p-6"
-      style={{ backgroundColor: 'var(--bg)' }}
+      style={{ backgroundColor: lightMode ? 'var(--bg-light)' : 'var(--bg)' }}
     >
       <div className="max-w-6xl mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -162,7 +165,7 @@ export const Homepage: React.FC<HomepageProps> = ({
           <div className="w-full max-w-md mx-auto">
             <div className="bg-white/5 backdrop-blur-sm rounded-xl p-8 border" style={{
               borderColor: 'var(--border)',
-              backgroundColor: 'rgba(var(--bg-light-rgb), 0.1)'
+              backgroundColor: lightMode ? 'var(--bg)' : 'rgba(var(--bg-light-rgb), 0.1)'
             }}>
               {showSignup ? (
                 <SignupForm

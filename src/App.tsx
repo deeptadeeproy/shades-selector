@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { ColorPaletteSelector } from './components/ColorPaletteSelector';
 import { PaletteManager } from './components/PaletteManager';
 import { Login } from './pages/Login';
@@ -106,7 +106,6 @@ function AppContent() {
   const navigateToSignup = () => navigate('/signup');
   const navigateToMain = () => navigate('/app');
   const navigateToProjects = () => navigate('/projects');
-  const navigateToProjectDetails = (projectId: string) => navigate(`/project/${projectId}`);
   // const navigateToManageAccount = () => navigate('/account');
 
   const handleUseAsGuest = () => {
@@ -223,7 +222,6 @@ function AppContent() {
                 onNavigateToSignup={navigateToSignup}
                 onLogout={handleLogout}
                 onNavigateToProjects={navigateToProjects}
-                onNavigateToProjectDetails={navigateToProjectDetails}
                 userName={currentUser?.name}
               />
             ) : !isLoading ? (

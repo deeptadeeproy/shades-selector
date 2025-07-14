@@ -183,28 +183,6 @@ export function generateColorPalette(config: ColorConfig): ColorPalette {
 // --- Palette Name Generator ---
 
 // Simple color name mapping for common colors
-const COLOR_NAMES: { [key: string]: string } = {
-  red: 'Red',
-  orange: 'Orange',
-  yellow: 'Yellow',
-  green: 'Green',
-  blue: 'Blue',
-  purple: 'Purple',
-  pink: 'Pink',
-  brown: 'Brown',
-  gray: 'Gray',
-  black: 'Black',
-  white: 'White',
-  cyan: 'Cyan',
-  teal: 'Teal',
-  magenta: 'Magenta',
-  lime: 'Lime',
-  indigo: 'Indigo',
-  violet: 'Violet',
-  gold: 'Gold',
-  silver: 'Silver',
-};
-
 const ADJECTIVES = [
   'Vivid', 'Soft', 'Dreamy', 'Bold', 'Gentle', 'Electric', 'Muted', 'Pastel', 'Deep', 'Bright', 'Dusky', 'Lively', 'Serene', 'Radiant', 'Frosty', 'Sunny', 'Twilight', 'Mystic', 'Retro', 'Modern', 'Classic', 'Fresh', 'Warm', 'Cool', 'Neon', 'Elegant', 'Chill', 'Royal', 'Cosmic', 'Vintage', 'Crystal', 'Velvet', 'Blissful', 'Enchanted', 'Lush', 'Opal', 'Aurora', 'Sunset', 'Ocean', 'Forest', 'Desert', 'Berry', 'Rose', 'Citrus', 'Mint', 'Sky', 'Shadow', 'Cloud', 'Dawn', 'Dusk', 'Zen', 'Bloom', 'Coral', 'Amber', 'Sapphire', 'Emerald', 'Ruby', 'Topaz', 'Jade', 'Onyx', 'Pearl', 'Ivory', 'Slate', 'Sand', 'Mocha', 'Cocoa', 'Charcoal', 'Platinum', 'Copper', 'Bronze', 'Turquoise', 'Lavender', 'Lilac', 'Peach', 'Apricot', 'Cherry', 'Moss', 'Pine', 'Maple', 'Willow', 'Lagoon', 'Flame', 'Fawn', 'Indigo', 'Azure', 'Cobalt', 'Blush', 'Honey', 'Mauve', 'Orchid', 'Poppy', 'Sable', 'Sage', 'Spruce', 'Tangerine', 'Wisteria', 'Zest',
 ];

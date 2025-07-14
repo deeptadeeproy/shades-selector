@@ -17,7 +17,6 @@ interface ProjectsProps {
   onNavigateToSignup: () => void;
   onLogout: () => void;
   onNavigateToProjects: () => void;
-  onNavigateToProjectDetails: (projectId: string) => void;
   userName?: string;
 }
 
@@ -27,7 +26,6 @@ export const Projects: React.FC<ProjectsProps> = ({
   onNavigateToSignup,
   onLogout,
   onNavigateToProjects,
-  onNavigateToProjectDetails,
   userName
 }) => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -43,6 +41,7 @@ export const Projects: React.FC<ProjectsProps> = ({
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [sortBy, setSortBy] = useState<'date' | 'name'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [deleteProjectName, setDeleteProjectName] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
@@ -146,6 +145,7 @@ export const Projects: React.FC<ProjectsProps> = ({
 
   const handleDeleteProject = (project: Project) => {
     setProjectToDelete(project);
+    setDeleteProjectName(project.name);
     setDeleteModalOpen(true);
   };
 
@@ -171,7 +171,9 @@ export const Projects: React.FC<ProjectsProps> = ({
       alert(error instanceof Error ? error.message : 'Failed to delete project');
     } finally {
       setIsDeleting(false);
+      setDeleteModalOpen(false);
       setProjectToDelete(null);
+      setDeleteProjectName(null);
     }
   };
 
@@ -673,10 +675,11 @@ export const Projects: React.FC<ProjectsProps> = ({
         onClose={() => {
           setDeleteModalOpen(false);
           setProjectToDelete(null);
+          setDeleteProjectName(null);
         }}
         onConfirm={handleConfirmDelete}
         title="Delete Project"
-        message={`Are you sure you want to delete "${projectToDelete?.name && projectToDelete.name.length > 20 ? `${projectToDelete.name.substring(0, 20)}...` : projectToDelete?.name}"? This action cannot be undone.`}
+        message={`Are you sure you want to delete "${deleteProjectName && deleteProjectName.length > 20 ? `${deleteProjectName.substring(0, 20)}...` : deleteProjectName}"? This action cannot be undone.`}
         confirmText="Delete Project"
         isLoading={isDeleting}
       />

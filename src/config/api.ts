@@ -137,10 +137,14 @@ export async function getPalette(id: string, token: string): Promise<GeneratedPa
 }
 
 // Delete palette
-export async function deletePalette(id: string): Promise<{ success: boolean; message: string }> {
+export async function deletePalette(id: string, token: string): Promise<{ success: boolean; message: string }> {
   try {
     const response = await fetch(`${PALETTES_API}/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
     });
 
     if (!response.ok) {

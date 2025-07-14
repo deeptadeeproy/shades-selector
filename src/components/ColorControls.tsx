@@ -11,9 +11,10 @@ interface ColorControlsProps {
   config: ColorConfig;
   onConfigChange: (config: ColorConfig) => void;
   onColorPickerOpen: () => void;
+  bgColor?: string;
 }
 
-export const ColorControls: React.FC<ColorControlsProps> = React.memo(({ config, onConfigChange, onColorPickerOpen }) => {
+export const ColorControls: React.FC<ColorControlsProps> = React.memo(({ config, onConfigChange, onColorPickerOpen, bgColor }) => {
   const [isEditingHue, setIsEditingHue] = useState(false);
   const [isEditingChroma, setIsEditingChroma] = useState(false);
   const [hueInputValue, setHueInputValue] = useState('');
@@ -154,7 +155,7 @@ export const ColorControls: React.FC<ColorControlsProps> = React.memo(({ config,
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card style={bgColor ? { background: bgColor } : {}}>
         <CardHeader>
           <CardTitle>Color Controls</CardTitle>
         </CardHeader>
