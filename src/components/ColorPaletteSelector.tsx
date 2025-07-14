@@ -413,111 +413,111 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
             )}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start w-full">
               {/* Palette Card and Back Button - Left Side */}
-              <div className="lg:col-span-2">
+            <div className="lg:col-span-2">
                 <div className="mb-8">
-                  <ColorPaletteDisplay 
-                    palette={palette} 
-                    onFormatChange={handlePaletteFormatChange}
-                    onSave={isLoggedIn ? (editingPaletteId ? handleSaveChanges : handleProjectSelectionOpen) : undefined}
-                    saveLabel={editingPaletteId ? (isLoading ? 'Saving...' : 'Save Changes') : undefined}
-                    isLoggedIn={isLoggedIn}
-                    refineMode={refineMode}
-                    onEditColor={handleEditColor}
-                    onToggleRefine={handleToggleRefine}
-                    editingColorName={editingColorName}
-                    onRefineColorChange={handleRefineColorChange}
-                    saveDisabled={!!editingPaletteId && saveChangesDisabled}
-                    editingPaletteId={editingPaletteId}
-                    saveSuccess={saveSuccess}
+              <ColorPaletteDisplay 
+                palette={palette} 
+                onFormatChange={handlePaletteFormatChange}
+                onSave={isLoggedIn ? (editingPaletteId ? handleSaveChanges : handleProjectSelectionOpen) : undefined}
+                saveLabel={editingPaletteId ? (isLoading ? 'Saving...' : 'Save Changes') : undefined}
+                isLoggedIn={isLoggedIn}
+                refineMode={refineMode}
+                onEditColor={handleEditColor}
+                onToggleRefine={handleToggleRefine}
+                editingColorName={editingColorName}
+                onRefineColorChange={handleRefineColorChange}
+                saveDisabled={!!editingPaletteId && saveChangesDisabled}
+                editingPaletteId={editingPaletteId}
+                saveSuccess={saveSuccess}
                     paletteName={paletteName} // <-- pass name
-                  />
-                  {/* Made with love - shown only on desktop below color palette */}
-                  <div className="hidden lg:block mt-4 text-center">
-                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                      Made with ❤️ by{' '}
-                      <a 
-                        href="https://droyfolio.vercel.app" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-text hover:to-text transition-colors duration-200 inline-flex items-center gap-1 font-semibold"
-                        style={linkStyle}
-                        onMouseEnter={(e) => {
-                          Object.assign(e.currentTarget.style, linkHoverStyle);
-                        }}
-                        onMouseLeave={(e) => {
-                          Object.assign(e.currentTarget.style, linkLeaveStyle);
-                        }}
-                      >
-                        Deeptadeep Roy
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                          <path d="M7 17L17 7M17 7H7M17 7V17"/>
-                        </svg>
-                      </a>
-                    </p>
-                  </div>
-                </div>
+              />
+              {/* Made with love - shown only on desktop below color palette */}
+              <div className="hidden lg:block mt-4 text-center">
+                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                  Made with ❤️ by{' '}
+                  <a 
+                    href="https://droyfolio.vercel.app" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-text hover:to-text transition-colors duration-200 inline-flex items-center gap-1 font-semibold"
+                    style={linkStyle}
+                    onMouseEnter={(e) => {
+                      Object.assign(e.currentTarget.style, linkHoverStyle);
+                    }}
+                    onMouseLeave={(e) => {
+                      Object.assign(e.currentTarget.style, linkLeaveStyle);
+                    }}
+                  >
+                    Deeptadeep Roy
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                    </svg>
+                  </a>
+                </p>
+              </div>
+            </div>
               </div>
               {/* Controls and Buttons - Right Side */}
-              <div className="lg:col-span-1 flex flex-col">
-                {/* Mobile subtext above controls */}
-                <div className="lg:hidden mb-3 ml-4">
-                  <p className="text-sm" style={{ color: palette['text-muted'] }}>
-                    Adjust the Sliders and toggle theme to create your perfect color palette.
-                  </p>
-                </div>
-                <div className="flex flex-col">
-                  <ColorControls 
-                    config={config} 
-                    onConfigChange={handleConfigChange} 
-                    onColorPickerOpen={handleColorPickerOpen}
+            <div className="lg:col-span-1 flex flex-col">
+              {/* Mobile subtext above controls */}
+              <div className="lg:hidden mb-3 ml-4">
+                <p className="text-sm" style={{ color: palette['text-muted'] }}>
+                  Adjust the Sliders and toggle theme to create your perfect color palette.
+                </p>
+              </div>
+              <div className="flex flex-col">
+                <ColorControls 
+                  config={config} 
+                  onConfigChange={handleConfigChange} 
+                  onColorPickerOpen={handleColorPickerOpen}
                     bgColor={palette.bg}
-                  />
-                  {/* Action Buttons */}
-                  <div className="flex space-x-3 mt-4 justify-end lg:justify-start">
-                    <Button 
-                      onClick={handleAlertsModalOpen}
-                      variant="secondary"
-                      className="self-end w-full lg:max-w-none lg:self-auto flex-1 transition-colors duration-200"
-                      style={secondaryButtonStyle}
+                />
+                {/* Action Buttons */}
+                <div className="flex space-x-3 mt-4 justify-end lg:justify-start">
+                  <Button 
+                    onClick={handleAlertsModalOpen}
+                    variant="secondary"
+                    className="self-end w-full lg:max-w-none lg:self-auto flex-1 transition-colors duration-200"
+                    style={secondaryButtonStyle}
+                    onMouseEnter={(e) => {
+                      Object.assign(e.currentTarget.style, secondaryButtonHoverStyle);
+                    }}
+                    onMouseLeave={(e) => {
+                      Object.assign(e.currentTarget.style, secondaryButtonLeaveStyle);
+                    }}
+                  >
+                    Alerts
+                  </Button>
+                  <Button 
+                    onClick={handleCssModalOpen}
+                    className="self-end w-full lg:max-w-none lg:self-auto flex-1"
+                  >
+                    See Code
+                  </Button>
+                </div>
+                {/* Made with love - shown only on mobile below buttons */}
+                <div className="lg:hidden mt-6 text-center">
+                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                    Made with ❤️ by{' '}
+                    <a 
+                      href="https://droyfolio.vercel.app" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-text hover:to-text transition-colors duration-200 inline-flex items-center gap-1 font-semibold"
+                      style={linkStyle}
                       onMouseEnter={(e) => {
-                        Object.assign(e.currentTarget.style, secondaryButtonHoverStyle);
+                        Object.assign(e.currentTarget.style, linkHoverStyle);
                       }}
                       onMouseLeave={(e) => {
-                        Object.assign(e.currentTarget.style, secondaryButtonLeaveStyle);
+                        Object.assign(e.currentTarget.style, linkLeaveStyle);
                       }}
                     >
-                      Alerts
-                    </Button>
-                    <Button 
-                      onClick={handleCssModalOpen}
-                      className="self-end w-full lg:max-w-none lg:self-auto flex-1"
-                    >
-                      See Code
-                    </Button>
-                  </div>
-                  {/* Made with love - shown only on mobile below buttons */}
-                  <div className="lg:hidden mt-6 text-center">
-                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                      Made with ❤️ by{' '}
-                      <a 
-                        href="https://droyfolio.vercel.app" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-text hover:to-text transition-colors duration-200 inline-flex items-center gap-1 font-semibold"
-                        style={linkStyle}
-                        onMouseEnter={(e) => {
-                          Object.assign(e.currentTarget.style, linkHoverStyle);
-                        }}
-                        onMouseLeave={(e) => {
-                          Object.assign(e.currentTarget.style, linkLeaveStyle);
-                        }}
-                      >
-                        Deeptadeep Roy
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                          <path d="M7 17L17 7M17 7H7M17 7V17"/>
-                        </svg>
-                      </a>
-                    </p>
+                      Deeptadeep Roy
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                      </svg>
+                    </a>
+                  </p>
                   </div>
                 </div>
               </div>

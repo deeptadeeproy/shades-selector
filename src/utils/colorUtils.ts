@@ -105,15 +105,20 @@ export function createChromaGradient(hue: number = 200, lightness: number = 0.5)
 // Generate the complete color palette using OKLCH
 export function generateColorPalette(config: ColorConfig): ColorPalette {
   const { hue, chroma, isLight } = config;
+  
+  // Ensure values are valid numbers
+  const validHue = Number.isFinite(hue) ? hue : 0;
+  const validChroma = Number.isFinite(chroma) ? chroma : 0;
+  
   // Triad method: colors are 120° apart on the color wheel
-  const hueSecondary = (hue + 120) % 360;
-  const hueTertiary = (hue + 240) % 360;
+  const hueSecondary = (validHue + 120) % 360;
+  const hueTertiary = (validHue + 240) % 360;
 
   // Calculate chroma values for different purposes
-  const chromaBg = +(chroma * 0.5).toFixed(3);
-  const chromaText = +Math.min(chroma, 0.1).toFixed(3);
-  const chromaAction = +Math.max(chroma, 0.1).toFixed(3);
-  const chromaAlert = +Math.max(chroma, 0.05).toFixed(3);
+  const chromaBg = +(validChroma * 0.5).toFixed(3);
+  const chromaText = +Math.min(validChroma, 0.1).toFixed(3);
+  const chromaAction = +Math.max(validChroma, 0.1).toFixed(3);
+  const chromaAlert = +Math.max(validChroma, 0.05).toFixed(3);
 
   // Fixed alert color hues - always semantic colors
   const dangerHue = 30; // Red
@@ -125,21 +130,21 @@ export function generateColorPalette(config: ColorConfig): ColorPalette {
     // Dark mode
     return {
       // Background colors
-      'bg-dark': generateOklchColor(0.1, chromaBg, hue),
-      bg: generateOklchColor(0.15, chromaBg, hue),
-      'bg-light': generateOklchColor(0.2, chromaBg, hue),
+      'bg-dark': generateOklchColor(0.1, chromaBg, validHue),
+      bg: generateOklchColor(0.15, chromaBg, validHue),
+      'bg-light': generateOklchColor(0.2, chromaBg, validHue),
 
       // Text colors
-      text: generateOklchColor(0.96, chromaText, hue),
-      'text-muted': generateOklchColor(0.76, chromaText, hue),
+      text: generateOklchColor(0.96, chromaText, validHue),
+      'text-muted': generateOklchColor(0.76, chromaText, validHue),
 
       // Border colors
-      highlight: generateOklchColor(0.5, chroma, hue),
-      border: generateOklchColor(0.4, chroma, hue),
-      'border-muted': generateOklchColor(0.3, chroma, hue),
+      highlight: generateOklchColor(0.5, validChroma, validHue),
+      border: generateOklchColor(0.4, validChroma, validHue),
+      'border-muted': generateOklchColor(0.3, validChroma, validHue),
 
       // Action colors
-      primary: generateOklchColor(0.76, chromaAction, hue),
+      primary: generateOklchColor(0.76, chromaAction, validHue),
       secondary: generateOklchColor(0.76, chromaAction, hueSecondary),
       tertiary: generateOklchColor(0.76, chromaAction, hueTertiary),
 
@@ -153,21 +158,21 @@ export function generateColorPalette(config: ColorConfig): ColorPalette {
     // Light mode
     return {
       // Background colors
-      'bg-dark': generateOklchColor(0.92, chromaBg, hue),
-      bg: generateOklchColor(0.96, chromaBg, hue),
-      'bg-light': generateOklchColor(1, chromaBg, hue),
+      'bg-dark': generateOklchColor(0.92, chromaBg, validHue),
+      bg: generateOklchColor(0.96, chromaBg, validHue),
+      'bg-light': generateOklchColor(1, chromaBg, validHue),
 
       // Text colors
-      text: generateOklchColor(0.15, chroma, hue),
-      'text-muted': generateOklchColor(0.4, Math.min(chroma, 0.08), hue),
+      text: generateOklchColor(0.15, validChroma, validHue),
+      'text-muted': generateOklchColor(0.4, Math.min(validChroma, 0.08), validHue),
 
       // Border colors
-      highlight: generateOklchColor(1, chroma, hue),
-      border: generateOklchColor(0.6, chroma, hue),
-      'border-muted': generateOklchColor(0.7, chroma, hue),
+      highlight: generateOklchColor(1, validChroma, validHue),
+      border: generateOklchColor(0.6, validChroma, validHue),
+      'border-muted': generateOklchColor(0.7, validChroma, validHue),
 
       // Action colors
-      primary: generateOklchColor(0.4, chromaAction, hue),
+      primary: generateOklchColor(0.4, chromaAction, validHue),
       secondary: generateOklchColor(0.4, chromaAction, hueSecondary),
       tertiary: generateOklchColor(0.4, chromaAction, hueTertiary),
 

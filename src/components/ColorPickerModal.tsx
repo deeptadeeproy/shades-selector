@@ -25,9 +25,9 @@ function hexToOklch(hexColor: string): { l: number; c: number; h: number } {
     }
 
     return {
-      l: color.l,
-      c: Math.max(0, Math.min(0.4, color.c)), // Clamp chroma to valid range
-      h: color.h >= 0 ? color.h : color.h + 360 // Ensure hue is positive
+      l: Number.isFinite(color.l) ? color.l : 0.5,
+      c: Number.isFinite(color.c) ? Math.max(0, Math.min(0.4, color.c)) : 0, // Clamp chroma to valid range
+      h: Number.isFinite(color.h) ? (color.h >= 0 ? color.h : color.h + 360) : 0 // Ensure hue is positive
     };
   } catch (error) {
     console.error('Error converting hex to OKLCH:', error);
@@ -154,7 +154,7 @@ export const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
                     fontWeight: '600',
                   }}
                 >
-                  {previewConfig.chroma.toFixed(3)}
+                  {typeof previewConfig.chroma === 'number' ? previewConfig.chroma.toFixed(3) : '0.000'}
                 </div>
               </div>
               <div className="space-y-1">
