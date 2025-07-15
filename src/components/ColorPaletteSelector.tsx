@@ -72,6 +72,45 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
   // Show back button if navigated from a project
   const projectId = location.state?.projectId;
 
+  const lightClassRemovedRef = React.useRef(false);
+  useEffect(() => {
+    const paletteId = location.state?.paletteId || searchParams.get('paletteId');
+    const preloadedPaletteData = location.state?.paletteData;
+    if (!paletteId && !preloadedPaletteData) {
+      const body = document.body;
+      if (body.classList.contains('light')) {
+        body.classList.remove('light');
+        lightClassRemovedRef.current = true;
+      }
+    }
+    return () => {
+      if (lightClassRemovedRef.current) {
+        document.body.classList.add('light');
+        lightClassRemovedRef.current = false;
+      }
+    };
+  }, [location.state, searchParams]);
+
+  const paletteLightClassRemovedRef = React.useRef(false);
+  useEffect(() => {
+    const paletteId = location.state?.paletteId || searchParams.get('paletteId');
+    const preloadedPaletteData = location.state?.paletteData;
+    // Only for loaded palettes (not new palette)
+    if (paletteId || preloadedPaletteData) {
+      const body = document.body;
+      if (body.classList.contains('light')) {
+        body.classList.remove('light');
+        paletteLightClassRemovedRef.current = true;
+      }
+    }
+    return () => {
+      if (paletteLightClassRemovedRef.current) {
+        document.body.classList.add('light');
+        paletteLightClassRemovedRef.current = false;
+      }
+    };
+  }, [location.state, searchParams]);
+
   const handleToggleRefine = () => {
     setRefineMode((v) => !v);
     setEditingColorName(null);
@@ -285,6 +324,15 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
     }
   }, [config, palette, location.state, searchParams]);
 
+  // Ensure paletteName is set to 'Palette' for a new palette
+  useEffect(() => {
+    const paletteId = location.state?.paletteId || searchParams.get('paletteId');
+    const preloadedPaletteData = location.state?.paletteData;
+    if (!paletteId && !preloadedPaletteData) {
+      setPaletteName('Palette');
+    }
+  }, [location.state, searchParams]);
+
   // Memoized styles and values
   const backgroundStyle = useMemo(() => ({
     backgroundColor: palette && config.isLight ? palette['bg-light'] : palette ? palette['bg-dark'] : '#171717'
@@ -312,30 +360,72 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
     [config.isLight]
   );
 
-  // Apply colors to CSS custom properties in real-time
+  // Update the useEffect that applies palette colors to CSS variables:
   useEffect(() => {
     if (!palette) return;
-    console.log('Applying palette to CSS variables:', palette);
-    
     const root = document.documentElement;
-    
+    // List of all expected palette CSS variables
+    const expectedKeys = [
+      'bg-dark', 'bg', 'bg-light', 'text', 'text-muted', 'muted-foreground',
+      'highlight', 'border', 'border-muted',
+      'primary', 'secondary', 'tertiary',
+      'danger', 'warning', 'success', 'info',
+      'bg-light-rgb', 'bg-rgb', 'border-rgb', 'text-rgb', 'card-border'
+    ];
     // Apply all palette colors as CSS custom properties
-    Object.entries(palette).forEach(([key, value]) => {
-      root.style.setProperty(`--${key}`, String(value));
+    expectedKeys.forEach(key => {
+      if (palette[key] !== undefined) {
+        root.style.setProperty(`--${key}`, String(palette[key]));
+      } else {
+        // Optionally clear or set a fallback for missing keys
+        root.style.removeProperty(`--${key}`);
+      }
     });
-
     // Apply RGB values for glassmorphic effects
     root.style.setProperty('--bg-light-rgb', bgLightRgb);
     root.style.setProperty('--bg-rgb', bgRgb);
     root.style.setProperty('--border-rgb', borderRgb);
-
     // Set card border based on theme mode
     root.style.setProperty('--card-border', cardBorder);
-
     // Don't set theme class on body for dynamic palettes
     // The dynamic colors from the backend should take precedence
     // document.body.classList.toggle('light', config.isLight);
   }, [palette, config.isLight, bgLightRgb, bgRgb, borderRgb, cardBorder]);
+
+  // Update the useEffect for default CSS:
+  useEffect(() => {
+    // Only apply defaults if there is NO palette loaded (i.e., new palette) and palette is null
+    const paletteId = location.state?.paletteId || searchParams.get('paletteId');
+    const preloadedPaletteData = location.state?.paletteData;
+    if (!paletteId && !preloadedPaletteData && !palette) {
+      const root = document.documentElement;
+      // Always set dark mode defaults for new palette
+      root.style.setProperty('--radius', '8px');
+      root.style.setProperty('--bg-dark', 'oklch(10% 0 265)');
+      root.style.setProperty('--bg', 'oklch(15% 0 265)');
+      root.style.setProperty('--bg-light', 'oklch(20% 0 265)');
+      root.style.setProperty('--text', 'oklch(96% 0 265)');
+      root.style.setProperty('--text-muted', 'oklch(76% 0 265)');
+      root.style.setProperty('--muted-foreground', 'oklch(76% 0 265)');
+      root.style.setProperty('--highlight', 'oklch(50% 0 265)');
+      root.style.setProperty('--border', 'oklch(40% 0 265)');
+      root.style.setProperty('--border-muted', 'oklch(30% 0 265)');
+      root.style.setProperty('--primary', '#92b0f1');
+      root.style.setProperty('--secondary', '#8b5cf6');
+      root.style.setProperty('--tertiary', 'oklch(76% 0.1 145)');
+      root.style.setProperty('--danger', 'oklch(70% 0.05 30)');
+      root.style.setProperty('--warning', 'oklch(70% 0.05 100)');
+      root.style.setProperty('--success', 'oklch(70% 0.05 160)');
+      root.style.setProperty('--info', 'oklch(70% 0.05 260)');
+      root.style.setProperty('--bg-light-rgb', '51, 51, 51');
+      root.style.setProperty('--bg-rgb', '38, 38, 38');
+      root.style.setProperty('--border-rgb', '102, 102, 102');
+      root.style.setProperty('--text-rgb', '245, 245, 245');
+      root.style.setProperty('--card-border', '1px solid rgba(102, 102, 102, 0.2)');
+      document.body.style.backgroundColor = 'var(--bg)';
+      document.body.style.color = 'var(--text)';
+    }
+  }, [location.state, searchParams, palette]);
 
   // Memoized button styles
   const secondaryButtonStyle = useMemo(() => ({
