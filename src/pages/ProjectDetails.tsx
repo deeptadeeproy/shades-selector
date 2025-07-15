@@ -420,7 +420,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
                     }}
                   />
                   <div style={{ minHeight: '20px', height: '20px', marginBottom: '8px' }}>
-                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                    <span className="text-xs" style={{ color: 'var(--text-muted)', marginLeft: '0.5rem' }}>
                       Press Enter to save, Escape to cancel
                     </span>
                   </div>
