@@ -29,7 +29,28 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
   userToken,
   paletteConfig
 }) => {
-  const { projects, isLoading, refreshProjects, setProjects } = useProjectCache();
+  // Early return for guest mode to prevent infinite re-renders
+  if (!userToken) {
+    return (
+      <Modal isOpen={isOpen} onClose={onClose} palette={palette}>
+        <div className="p-6">
+          <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text)' }}>
+            Project Selection Unavailable
+          </h2>
+          <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+            You must be logged in to save palettes to projects.
+          </p>
+          <Button onClick={onClose} className="w-full">Close</Button>
+        </div>
+      </Modal>
+    );
+  }
+
+  const projectCache = useProjectCache();
+  const projects = projectCache ? projectCache.projects : [];
+  const isLoading = projectCache ? projectCache.isLoading : false;
+  const refreshProjects = projectCache ? projectCache.refreshProjects : undefined;
+  const setProjects = projectCache ? projectCache.setProjects : undefined;
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [displayedProjects, setDisplayedProjects] = useState<Project[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -110,7 +131,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
       const response = await createProject(searchQuery.trim(), '', userToken);
       if (response.success && response.project) {
         // Update the global cache
-        await refreshProjects();
+        if (refreshProjects) await refreshProjects();
         setNewProjectName('');
         setIsCreatingProject(false);
         setSelectedProjectId(response.project.id);
@@ -177,7 +198,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
       const response = await savePaletteToProject(selectedProjectId, paletteResponse.id, userToken);
       if (response.success) {
         // Update the project's palettes in the global cache
-        setProjects(prev => prev ? prev.map(p => p.id === selectedProjectId ? { ...p, palettes: [...(p.palettes || []), paletteResponse.id] } : p) : null);
+        if (setProjects) setProjects(prev => prev ? prev.map(p => p.id === selectedProjectId ? { ...p, palettes: [...(p.palettes || []), paletteResponse.id] } : p) : null);
         const selectedProject = safeProjects.find(p => p.id === selectedProjectId);
         setSuccessMessage(`Palette saved to project ${selectedProject?.name && selectedProject.name.length > 20 ? `${selectedProject.name.substring(0, 20)}...` : selectedProject?.name || 'Unknown Project'}!`);
         setSelectedProjectId(selectedProjectId);

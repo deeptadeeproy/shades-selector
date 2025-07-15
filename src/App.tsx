@@ -68,7 +68,6 @@ function AppContent() {
       
       setCurrentUser(response.user);
       setIsLoggedIn(true);
-      setIsGuestMode(false);
       navigate('/app');
     } catch (error) {
       console.error('Login failed:', error);
@@ -88,7 +87,6 @@ function AppContent() {
       
       setCurrentUser(response.user);
       setIsLoggedIn(true);
-      setIsGuestMode(false);
       // Don't navigate immediately - let the Signup component show success message first
       // navigate('/');
     } catch (error) {
@@ -112,7 +110,6 @@ function AppContent() {
     
     setCurrentUser(null);
     setIsLoggedIn(false);
-    setIsGuestMode(false);
     resetPaletteCssVars();
     navigate('/');
   };
@@ -124,7 +121,6 @@ function AppContent() {
   // const navigateToManageAccount = () => navigate('/account');
 
   const handleUseAsGuest = () => {
-    // Clear any existing auth data
     localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
     setCurrentUser(null);
@@ -162,7 +158,6 @@ function AppContent() {
     localStorage.removeItem('userData');
     setCurrentUser(null);
     setIsLoggedIn(false);
-    setIsGuestMode(false);
     resetPaletteCssVars();
     navigate('/');
   };
@@ -273,6 +268,22 @@ function AppContent() {
                   </Routes>
                 </PaletteCacheProvider>
               </ProjectCacheProvider>
+            }
+          />
+        )}
+        {/* Guest mode: allow /app only, no providers */}
+        {(!isLoading && isGuestMode) && (
+          <Route
+            path="app"
+            element={
+              <ColorPaletteSelector
+                isLoggedIn={false}
+                onNavigateToLogin={navigateToLogin}
+                onNavigateToSignup={navigateToSignup}
+                onLogout={handleLogout}
+                onNavigateToProjects={navigateToProjects}
+                userName={undefined}
+              />
             }
           />
         )}
