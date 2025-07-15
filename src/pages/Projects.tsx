@@ -5,11 +5,13 @@ import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Navigation } from '../components/Navigation';
 import { ConfirmationModal } from '../components/ConfirmationModal';
-import { getUserProjects, createProject, deleteProject } from '../config/api';
+import { createProject, deleteProject } from '../config/api';
 import type { Project } from '../config/api';
 import { getAuthToken } from '../utils/authUtils';
 import { fuzzySearchWithScore } from '../utils/fuzzySearch';
 import { useNavigate } from 'react-router-dom';
+import { useCache } from '../contexts/CacheContext';
+import { projectPaletteCache } from '../utils/cacheUtils';
 
 interface ProjectsProps {
   onNavigateBack: () => void;
@@ -28,11 +30,10 @@ export const Projects: React.FC<ProjectsProps> = ({
   onNavigateToProjects,
   userName
 }) => {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const { projects, refreshProjects, isLoading } = useCache();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [projectName, setProjectName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -45,23 +46,34 @@ export const Projects: React.FC<ProjectsProps> = ({
 
   const navigate = useNavigate();
 
-  // Fetch projects on component mount
+  // Load projects from cache on component mount
   useEffect(() => {
-    fetchProjects();
-  }, []);
+    if (projects.length === 0 && !isLoading) {
+      refreshProjects().catch(error => {
+        console.error('Error loading projects:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load projects');
+      });
+    }
+  }, [projects.length, isLoading, refreshProjects]);
 
   // Apply sorting when sort options change
   useEffect(() => {
     if (projects.length > 0) {
+      // Convert CachedProject to Project for compatibility
+      const projectList = projects.map(p => ({
+        ...p,
+        palettes: p.palettes || []
+      }));
+      
       // Apply search filter first, then sort
       if (!searchQuery.trim()) {
-        setFilteredProjects(sortProjects(projects));
+        setFilteredProjects(sortProjects(projectList));
       } else {
-        const projectNames = projects.map(p => p.name);
+        const projectNames = projectList.map(p => p.name);
         const searchResults = fuzzySearchWithScore(searchQuery, projectNames);
         const matchedProjectNames = searchResults.map(result => result.item);
         
-        const filtered = projects.filter(project => 
+        const filtered = projectList.filter(project => 
           matchedProjectNames.includes(project.name)
         );
         
@@ -69,32 +81,6 @@ export const Projects: React.FC<ProjectsProps> = ({
       }
     }
   }, [sortBy, sortOrder, projects, searchQuery]);
-
-  const fetchProjects = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const token = getAuthToken();
-      if (!token) {
-        setError('No authentication token found');
-        return;
-      }
-
-      const response = await getUserProjects(token);
-      if (response.success && response.projects) {
-        setProjects(response.projects);
-        setFilteredProjects(sortProjects(response.projects));
-      } else {
-        throw new Error(response.message || 'Failed to fetch projects');
-      }
-    } catch (err) {
-      console.error('Error fetching projects:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch projects');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,8 +111,8 @@ export const Projects: React.FC<ProjectsProps> = ({
       if (response.success && response.project) {
         setProjectName('');
         setShowCreateForm(false);
-        // Fetch all projects again to get the updated list with proper sorting
-        await fetchProjects();
+        // Add new project to cache
+        projectPaletteCache.addProject(response.project);
       } else {
         throw new Error(response.message || 'Failed to create project');
       }
@@ -161,8 +147,8 @@ export const Projects: React.FC<ProjectsProps> = ({
 
       const response = await deleteProject(projectToDelete.id, token);
       if (response.success) {
-        // Remove the project from the list
-        setProjects(prev => prev.filter(p => p.id !== projectToDelete.id));
+        // Remove the project from cache
+        projectPaletteCache.removeProject(projectToDelete.id);
       } else {
         throw new Error(response.message || 'Failed to delete project');
       }
@@ -244,15 +230,26 @@ export const Projects: React.FC<ProjectsProps> = ({
     setSearchQuery(query);
     
     if (!query.trim()) {
-      setFilteredProjects(sortProjects(projects));
+      // Convert CachedProject to Project for compatibility
+      const projectList = projects.map(p => ({
+        ...p,
+        palettes: p.palettes || []
+      }));
+      setFilteredProjects(sortProjects(projectList));
       return;
     }
     
-    const projectNames = projects.map(p => p.name);
+    // Convert CachedProject to Project for compatibility
+    const projectList = projects.map(p => ({
+      ...p,
+      palettes: p.palettes || []
+    }));
+    
+    const projectNames = projectList.map(p => p.name);
     const searchResults = fuzzySearchWithScore(query, projectNames);
     const matchedProjectNames = searchResults.map(result => result.item);
     
-    const filtered = projects.filter(project => 
+    const filtered = projectList.filter(project => 
       matchedProjectNames.includes(project.name)
     );
     
@@ -270,7 +267,12 @@ export const Projects: React.FC<ProjectsProps> = ({
 
   const clearSearch = () => {
     setSearchQuery('');
-    setFilteredProjects(sortProjects(projects));
+    // Convert CachedProject to Project for compatibility
+    const projectList = projects.map(p => ({
+      ...p,
+      palettes: p.palettes || []
+    }));
+    setFilteredProjects(sortProjects(projectList));
   };
 
   // Show loading state
@@ -328,7 +330,7 @@ export const Projects: React.FC<ProjectsProps> = ({
               </CardHeader>
               <CardContent className="text-center">
                 <Button 
-                  onClick={fetchProjects}
+                  onClick={() => refreshProjects()}
                   className="w-full mb-3"
                 >
                   Try Again

@@ -2,10 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Modal } from './ui/modal';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { getUserProjects, createProject, savePaletteToProject, savePalette, type Project } from '../config/api';
+import { createProject, savePaletteToProject, savePalette, type Project } from '../config/api';
 import { fuzzySearchWithScore } from '../utils/fuzzySearch';
 import { generatePaletteName } from '../utils/colorUtils';
 import type { ColorPalette } from '../utils/colorUtils';
+import { useCache } from '../contexts/CacheContext';
+import { projectPaletteCache } from '../utils/cacheUtils';
 
 interface ProjectSelectionModalProps {
   isOpen: boolean;
@@ -28,11 +30,10 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
   userToken,
   paletteConfig
 }) => {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const { projects: cachedProjects, refreshProjects } = useCache();
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [displayedProjects, setDisplayedProjects] = useState<Project[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [isCreatingProject, setIsCreatingProject] = useState(false);
   const [isSavingPalette, setIsSavingPalette] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
@@ -43,12 +44,21 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
   // Add a new state for the create+save step
   const [createSaveStep, setCreateSaveStep] = useState<'idle' | 'creating' | 'saving'>('idle');
 
-  // Fetch user projects on modal open, but not after successful save
+  // Convert cached projects to regular projects for compatibility
+  const projects = cachedProjects.map(p => ({
+    ...p,
+    palettes: p.palettes || []
+  }));
+
+  // Load projects from cache on modal open, but not after successful save
   useEffect(() => {
-    if (isOpen && userToken && !successMessage) {
-      fetchProjects();
+    if (isOpen && userToken && !successMessage && cachedProjects.length === 0) {
+      refreshProjects().catch(error => {
+        console.error('Error loading projects:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load projects');
+      });
     }
-  }, [isOpen, userToken, successMessage]);
+  }, [isOpen, userToken, successMessage, cachedProjects.length, refreshProjects]);
 
   // Filter projects based on search query and update displayed projects
   useEffect(() => {
@@ -73,33 +83,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
     }
   }, [searchQuery, projects]);
 
-  const fetchProjects = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const response = await getUserProjects(userToken);
-      if (response.success && response.projects) {
-        // Sort projects by creation date (most recent first)
-        const sortedProjects = response.projects.sort((a, b) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        setProjects(sortedProjects);
-        setFilteredProjects(sortedProjects);
-        // Show only the 5 most recent projects initially
-        const recentProjects = sortedProjects.slice(0, 5);
-        setDisplayedProjects(recentProjects);
-        setShowAllProjects(sortedProjects.length > 5);
-      } else {
-        throw new Error(response.message || 'Failed to fetch projects');
-      }
-    } catch (err) {
-      console.error('Error fetching projects:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch projects');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userToken]);
+
 
   // Show success message and close modal after 2 seconds
   useEffect(() => {
@@ -140,16 +124,9 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
       // 1. Create the project
       const response = await createProject(searchQuery.trim(), '', userToken);
       if (response.success && response.project) {
-        // Add the new project to the beginning of the list (most recent)
-        const updatedProjects = [response.project, ...projects];
-        setProjects(updatedProjects);
-        setFilteredProjects(updatedProjects);
-        // Update displayed projects to show the new project in the top 5
-        const recentProjects = updatedProjects.slice(0, 5);
-        setDisplayedProjects(recentProjects);
-        setShowAllProjects(updatedProjects.length > 5);
-        setNewProjectName('');
-        setIsCreatingProject(false);
+        // Add the new project to cache
+        projectPaletteCache.addProject(response.project);
+        
         // Auto-select the newly created project
         setSelectedProjectId(response.project.id);
 
@@ -326,12 +303,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
 
             {/* Projects List */}
             <div className="mb-4 max-h-64 overflow-y-auto custom-scrollbar">
-              {isLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: 'var(--primary)' }}></div>
-                  <span className="ml-2 text-sm" style={{ color: 'var(--text-muted)' }}>Loading projects...</span>
-                </div>
-              ) : displayedProjects.length === 0 && !searchQuery ? (
+              {projects.length === 0 && !searchQuery ? (
                 <div className="text-center py-8">
                   <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
                     No projects found. Create your first project to get started.
@@ -339,7 +311,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {displayedProjects.map((project) => (
+                  {projects.map((project) => (
                     <div
                       key={project.id}
                       className={`p-3 rounded-lg cursor-pointer transition-colors border ${
@@ -433,7 +405,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
               <Button
                 variant="secondary"
                 onClick={handleClose}
-                disabled={isLoading || isSavingPalette || isCreatingProject}
+                disabled={isCreatingProject || isSavingPalette}
               >
                 Cancel
               </Button>

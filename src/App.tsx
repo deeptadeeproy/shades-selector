@@ -9,6 +9,8 @@ import { Projects } from './pages/Projects';
 import { ProjectDetails } from './pages/ProjectDetails';
 import { ManageAccount } from './pages/ManageAccount';
 import { loginUser, registerUser, logoutUser, type AuthUser, updateUserName } from './config/api';
+import { CacheProvider } from './contexts/CacheContext';
+import { useBackgroundLoader } from './hooks/useBackgroundLoader';
 
 function resetPaletteCssVars() {
   const root = document.documentElement;
@@ -23,6 +25,9 @@ function AppContent() {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Initialize background loader for caching
+  useBackgroundLoader(isLoggedIn);
 
   // Global theme persistence for all pages except /app (palette page)
   useEffect(() => {
@@ -104,7 +109,7 @@ function AppContent() {
       // Continue with logout even if API call fails
     }
     
-    // Clear local storage
+    // Clear local storage and cache
     localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
     
@@ -166,8 +171,9 @@ function AppContent() {
   };
 
   return (
-    <PaletteManager>
-      <Routes>
+    <CacheProvider>
+      <PaletteManager>
+        <Routes>
         <Route 
           path="/login" 
           element={
@@ -279,7 +285,8 @@ function AppContent() {
         {/* Redirect any unknown routes to home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </PaletteManager>
+      </PaletteManager>
+    </CacheProvider>
   );
 }
 
