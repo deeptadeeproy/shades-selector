@@ -451,7 +451,7 @@ export const Projects: React.FC<ProjectsProps> = ({
                     />
                     <div className="flex justify-between items-center">
                       <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                        Only spaces, dots (.), hyphens (-), and underscores (_) are allowed as special characters.
+                        Only dots (.), hyphens (-), and underscores (_) are allowed as special characters.
                       </p>
                       <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                         {projectName.length}/100

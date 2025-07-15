@@ -257,6 +257,20 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
     }
   }, [showCreateNewOption, searchQuery, newProjectName]);
 
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Only allow up to 100 characters
+    if (value.length > 100) return;
+    // Only allow letters, numbers, spaces, dots, hyphens, and underscores
+    const validNameRegex = /^[a-zA-Z0-9\s.\-_]*$/;
+    if (validNameRegex.test(value)) {
+      setSearchQuery(value);
+      setError(null);
+    } else {
+      setError('Only dots (.), hyphens (-), and underscores (_) are allowed as special characters.');
+    }
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={handleClose} palette={palette}>
       <div className="p-6">
@@ -294,7 +308,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
                 type="text"
                 placeholder="Search projects..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchInputChange}
                 className="w-full"
               />
             </div>
