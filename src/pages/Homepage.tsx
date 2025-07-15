@@ -21,6 +21,7 @@ export const Homepage: React.FC<HomepageProps> = ({
   const [showSignup, setShowSignup] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [countdown, setCountdown] = useState(3);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSwitchToSignup = () => setShowSignup(true);
   const handleSwitchToLogin = () => setShowSignup(false);
@@ -167,30 +168,54 @@ export const Homepage: React.FC<HomepageProps> = ({
             <div className="bg-white/5 backdrop-blur-sm rounded-xl p-8" style={{ backgroundColor: formBg }}>
               {showSignup ? (
                 <SignupForm
-                  onSignup={onSignup}
+                  onSignup={async (name, email, password) => {
+                    setIsLoading(true);
+                    try {
+                      await onSignup(name, email, password);
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
                   onSwitchToLogin={handleSwitchToLogin}
                   onSuccess={handleSignupSuccess}
                   showSuccessMessage={false}
+                  isLoading={isLoading}
                 />
               ) : (
                 <LoginForm
-                  onLogin={onLogin}
+                  onLogin={async (email, password) => {
+                    setIsLoading(true);
+                    try {
+                      await onLogin(email, password);
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
                   onSwitchToSignup={handleSwitchToSignup}
+                  isLoading={isLoading}
                 />
               )}
               
               {/* Use as Guest Button */}
               <div className="mt-8 pt-6" /* border removed */>
                 <Button
-                  onClick={onUseAsGuest}
+                  onClick={async () => {
+                    setIsLoading(true);
+                    try {
+                      await onUseAsGuest();
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
                   variant="secondary"
                   className="w-full flex items-center justify-center gap-2"
                   style={{
                     color: 'var(--text-muted)',
                     backgroundColor: 'transparent'
                   }}
+                  disabled={isLoading}
                 >
-                  Use as Guest
+                  {isLoading ? 'Loading...' : 'Use as Guest'}
                   <svg 
                     width="16" 
                     height="16" 

@@ -88,7 +88,11 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               disabled={Boolean(isLoading || (passwordLabel && !password))}
               style={isDestructive ? { backgroundColor: '#ef4444', color: '#fff' } : undefined}
             >
-              {isLoading ? 'Deleting...' : confirmText}
+              {isLoading && (confirmText === 'Log Out' || title.toLowerCase().includes('log out') || message.toLowerCase().includes('log out'))
+                ? 'Logging out...'
+                : isLoading
+                  ? (confirmText === 'Delete' ? 'Deleting...' : confirmText)
+                  : confirmText}
             </Button>
           </div>
         </CardContent>

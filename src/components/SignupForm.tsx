@@ -10,6 +10,7 @@ interface SignupFormProps {
   onSuccess?: () => void;
   className?: string;
   showSuccessMessage?: boolean;
+  isLoading?: boolean;
 }
 
 export const SignupForm: React.FC<SignupFormProps> = ({ 
@@ -17,7 +18,8 @@ export const SignupForm: React.FC<SignupFormProps> = ({
   onSwitchToLogin, 
   onSuccess,
   className = "",
-  showSuccessMessage = false
+  showSuccessMessage = false,
+  isLoading: externalLoading
 }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -26,6 +28,10 @@ export const SignupForm: React.FC<SignupFormProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [countdown, setCountdown] = useState(3);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const loading = externalLoading !== undefined ? externalLoading : isLoading;
 
   // Handle redirect when countdown reaches 0
   useEffect(() => {
@@ -47,6 +53,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({
     }
     
     setError(null);
+    if (externalLoading !== undefined) {
+      await onSignup(name, email, password);
+      return;
+    }
+    setIsLoading(true);
     
     try {
       await onSignup(name, email, password);
@@ -69,6 +80,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({
       console.error('Signup failed:', error);
       setError(error instanceof Error ? error.message : 'Signup failed');
     }
+    setIsLoading(false);
   };
 
   // Show success message if signup was successful and showSuccessMessage is true
@@ -159,19 +171,53 @@ export const SignupForm: React.FC<SignupFormProps> = ({
         
         <div className="space-y-2">
           <Label htmlFor="password" style={{ color: 'var(--text)' }}>Password</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Create a password"
-            required
-            style={{
-              backgroundColor: 'var(--bg-light)',
-              borderColor: 'var(--border)',
-              color: 'var(--text)'
-            }}
-          />
+          <div style={{ position: 'relative' }}>
+            <Input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Create a password"
+              required
+              style={{
+                backgroundColor: 'var(--bg-light)',
+                borderColor: 'var(--border)',
+                color: 'var(--text)'
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              style={{
+                position: 'absolute',
+                right: 10,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--text-muted)'
+              }}
+              tabIndex={-1}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? (
+                // Eye-off icon (Feather)
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M17.94 17.94A10.06 10.06 0 0 1 12 20c-5.05 0-9.29-3.36-10-8 .21-1.38.77-2.68 1.62-3.8"/>
+                  <path d="M6.1 6.1A9.94 9.94 0 0 1 12 4c5.05 0 9.29 3.36 10 8-.21 1.38-.77 2.68-1.62 3.8"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              ) : (
+                // Eye icon (Feather)
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <ellipse cx="12" cy="12" rx="10" ry="8"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
         
         <div className="space-y-2">
@@ -194,8 +240,9 @@ export const SignupForm: React.FC<SignupFormProps> = ({
         <Button 
           type="submit" 
           className="w-full"
+          disabled={loading || password !== confirmPassword}
         >
-          Create Account
+          {loading ? 'Signing Up...' : 'Create Account'}
         </Button>
       </form>
       
