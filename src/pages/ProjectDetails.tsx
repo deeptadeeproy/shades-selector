@@ -439,20 +439,22 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
         <div className="pt-0 px-6">
           <div className="max-w-6xl mx-auto w-full">
             {/* Palettes section */}
+            {isLoadingPalettes && palettes.length === 0 && (
+              <LoadingModal isOpen={true} message="Loading palettes..." />
+            )}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-semibold" style={{ color: 'var(--text)' }}>
                   Palettes ({project.palettes.length})
                 </h2>
-                {isLoadingPalettes && (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                    <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading palettes...</span>
-                  </div>
-                )}
               </div>
               
-              {project.palettes.length === 0 ? (
+              {isLoadingPalettes ? (
+                <div className="flex flex-col items-center justify-center min-h-[200px] gap-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: 'var(--primary)' }}></div>
+                  <span className="text-lg" style={{ color: 'var(--text-muted)' }}>Loading palettes...</span>
+                </div>
+              ) : project.palettes.length === 0 ? (
                 <Card style={{ border: 'none', backgroundColor: 'var(--bg-light)' }}>
                   <CardContent className="flex flex-col items-center justify-center min-h-[220px] gap-4 text-center">
                     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: 'var(--text-muted)' }}>
