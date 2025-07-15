@@ -6,12 +6,11 @@ import { Navigation } from '../components/Navigation';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { LoadingModal } from '../components/LoadingModal';
 import { updateProject, deletePalette } from '../config/api';
-import type { Project } from '../config/api';
 import { getAuthToken } from '../utils/authUtils';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
-import { useCache } from '../contexts/CacheContext';
-import { projectPaletteCache } from '../utils/cacheUtils';
+import { useProjectCache } from '../contexts/ProjectCacheContext';
+import { usePaletteCache } from '../contexts/PaletteCacheContext';
 
 interface ProjectDetailsProps {
   projectId?: string;
@@ -44,14 +43,14 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
   if (!projectId) {
     return <div style={{ color: 'var(--danger)', padding: 32 }}>No project selected. Please go back to the projects page.</div>;
   }
-  
-  const { getProject, getProjectPalettes, refreshProjectPalettes, getPalette } = useCache();
-  const [project, setProject] = useState<Project | null>(null);
+  const { projects, setProjects, refreshProjects } = useProjectCache();
+  const { getPaletteById, removePaletteFromCache } = usePaletteCache();
   const [palettes, setPalettes] = useState<PaletteData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editName, setEditName] = useState('');
+  const [isLoadingPalettes, setIsLoadingPalettes] = useState(false);
   const [isDeletingPalette, setIsDeletingPalette] = useState<string | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [paletteToDelete, setPaletteToDelete] = useState<string | null>(null);
@@ -59,40 +58,22 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
   const nameInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
-  // Load project details from cache on component mount
-  useEffect(() => {
-    loadProjectFromCache();
-  }, [projectId]);
+  // Get project from global cache
+  const project = projects?.find(p => p.id === projectId) || null;
 
-  // Fetch palettes for this project if not already cached
+  // Set editName and load palettes when project changes
   useEffect(() => {
-    if (!project) return;
-    const cachedPalettes = getProjectPalettes(projectId);
-    const missingPalettes = (project.palettes || []).filter(
-      pid => !cachedPalettes.some(p => p.id === pid)
-    );
-    if (missingPalettes.length > 0) {
-      refreshProjectPalettes(projectId).then(() => {
-        const updatedPalettes = getProjectPalettes(projectId);
-        setPalettes(updatedPalettes.map(palette => ({
-          id: palette.id,
-          name: palette.name,
-          colors: palette.colors,
-          config: palette.config
-        })));
-      });
+    if (project) {
+      setEditName(project.name);
+      fetchPalettes(project.palettes);
+      setIsLoading(false);
+      setError(null);
     } else {
-      setPalettes((project.palettes || []).map(pid => {
-        const palette = getPalette(pid);
-        return palette ? {
-          id: palette.id,
-          name: palette.name,
-          colors: palette.colors,
-          config: palette.config
-        } : { id: pid, name: undefined, colors: [], config: { hue: 0, chroma: 0, isLight: false } };
-      }));
+      setIsLoading(false);
+      setError('Project not found');
     }
-  }, [project, projectId, getProjectPalettes, refreshProjectPalettes, getPalette]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, project]);
 
   // Focus input when editing starts
   useEffect(() => {
@@ -102,54 +83,53 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
     }
   }, [isEditingName]);
 
-  const loadProjectFromCache = async () => {
+  const fetchPalettes = async (paletteIds: string[]) => {
+    if (paletteIds.length === 0) {
+      setPalettes([]);
+      return;
+    }
+
+    setIsLoadingPalettes(true);
     try {
-      setIsLoading(true);
-      setError(null);
-      
-      const cachedProject = getProject(projectId);
-      if (cachedProject) {
-        // Convert CachedProject to Project for compatibility
-        const projectData: Project = {
-          ...cachedProject,
-          palettes: cachedProject.palettes || []
-        };
-        
-        setProject(projectData);
-        setEditName(projectData.name);
-        
-        // Load palettes from cache
-        const cachedPalettes = getProjectPalettes(projectId);
-        if (cachedPalettes.length > 0) {
-          setPalettes(cachedPalettes.map(palette => ({
-            id: palette.id,
-            name: palette.name,
-            colors: palette.colors,
-            config: palette.config
-          })));
-        } else {
-          // If palettes not in cache, load them in background
-          await refreshProjectPalettes(projectId);
-          const updatedPalettes = getProjectPalettes(projectId);
-          setPalettes(updatedPalettes.map(palette => ({
-            id: palette.id,
-            name: palette.name,
-            colors: palette.colors,
-            config: palette.config
-          })));
+      const palettePromises = paletteIds.map(async (paletteId) => {
+        try {
+          const paletteData = await getPaletteById(paletteId);
+          if (paletteData) {
+            return {
+              id: paletteId,
+              name: paletteData.name, // <-- Extract name from backend
+              colors: paletteData.colors,
+              config: paletteData.config
+            };
+          } else {
+            return {
+              id: paletteId,
+              name: undefined, // <-- Set name as undefined for failed fetches
+              colors: [],
+              config: { hue: 0, chroma: 0, isLight: false }
+            };
+          }
+        } catch (error) {
+          console.error(`Failed to fetch palette ${paletteId}:`, error);
+          // Return a placeholder palette if fetch fails
+          return {
+            id: paletteId,
+            name: undefined, // <-- Set name as undefined for failed fetches
+            colors: [],
+            config: { hue: 0, chroma: 0, isLight: false }
+          };
         }
-      } else {
-        setError('Project not found');
-      }
-    } catch (err) {
-      console.error('Error loading project from cache:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load project');
+      });
+
+      const paletteResults = await Promise.all(palettePromises);
+      setPalettes(paletteResults);
+    } catch (error) {
+      console.error('Error fetching palettes:', error);
+      setPalettes([]);
     } finally {
-      setIsLoading(false);
+      setIsLoadingPalettes(false);
     }
   };
-
-
 
   const handleNameClick = () => {
     setIsEditingName(true);
@@ -183,14 +163,8 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
 
       const response = await updateProject(project.id, { name: trimmedName }, token);
       if (response.success && response.project) {
-        // Update project in cache
-        projectPaletteCache.updateProject(project.id, { name: trimmedName });
-        
-        // Preserve the existing palettes array since the API response doesn't include it
-        setProject({
-          ...response.project,
-          palettes: project.palettes
-        });
+        // Update the project in the global cache, ensuring all required fields are present
+        setProjects(prev => prev ? prev.map(p => p.id === project.id ? { ...p, name: response.project!.name, palettes: project.palettes } : p) : null);
         setIsEditingName(false);
       } else {
         throw new Error(response.message || 'Failed to update project');
@@ -229,16 +203,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
     try {
       setIsLoadingPalette(true);
       
-      const token = getAuthToken();
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      // Get palette data from cache
-      const paletteData = getProjectPalettes(projectId).find(p => p.id === paletteId);
-      if (!paletteData) {
-        throw new Error('Palette not found in cache');
-      }
+      const paletteData = await getPaletteById(paletteId);
       
       // Navigate to app page with the palette data
       navigate('/app', { 
@@ -246,7 +211,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
           paletteId: paletteId, 
           projectId: project?.id, 
           projectName: project?.name, 
-          paletteName: paletteName || paletteData.name,
+          paletteName: paletteName || paletteData?.name,
           paletteData: paletteData // Pass the full palette data
         } 
       });
@@ -280,11 +245,9 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
       
       // For now, just remove from local state
       setPalettes(prev => prev.filter(p => p.id !== paletteToDelete));
+      removePaletteFromCache(paletteToDelete); // Remove from cache
       if (project) {
-        setProject({
-          ...project,
-          palettes: project.palettes.filter(id => id !== paletteToDelete)
-        });
+        setProjects(prev => prev ? prev.map(p => p.id === project.id ? { ...project, palettes: project.palettes.filter(id => id !== paletteToDelete) } : p) : null);
       }
     } catch (error) {
       console.error('Failed to delete palette:', error);
@@ -344,7 +307,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
               </CardHeader>
               <CardContent className="text-center">
                 <Button 
-                  onClick={loadProjectFromCache}
+                  onClick={refreshProjects}
                   className="w-full mb-3"
                 >
                   Try Again
@@ -478,10 +441,10 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
             {/* Palettes section */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold mb-2" style={{ color: 'var(--text)' }}>
+                <h2 className="text-2xl font-semibold" style={{ color: 'var(--text)' }}>
                   Palettes ({project.palettes.length})
                 </h2>
-                {isLoadingPalette && (
+                {isLoadingPalettes && (
                   <div className="flex items-center gap-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                     <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading palettes...</span>

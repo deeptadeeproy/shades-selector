@@ -10,6 +10,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { oklch } from 'culori';
 import isEqual from 'lodash.isequal';
+import { usePaletteCache } from '../contexts/PaletteCacheContext';
 
 // Lazy load modal components to reduce initial bundle size
 const CssCodeModal = lazy(() => import('./CssCodeModal').then(module => ({ default: module.CssCodeModal })));
@@ -68,6 +69,7 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
   const navigate = useNavigate();
   const location = useLocation();
   const [paletteName, setPaletteName] = useState<string | null>(null);
+  const { setPaletteInCache } = usePaletteCache();
 
   // Show back button if navigated from a project
   const projectId = location.state?.projectId;
@@ -213,6 +215,13 @@ export const ColorPaletteSelector: React.FC<ColorPaletteSelectorProps> = React.m
       // Convert palette object to array
       const colors = Object.entries(palette).map(([name, value]) => ({ name, value: String(value) }));
       await updatePalette(editingPaletteId, colors, config, token);
+      // Update palette cache with new details
+      setPaletteInCache(editingPaletteId, {
+        name: paletteName || 'Palette',
+        config,
+        colors,
+        success: true,
+      });
       setError(null);
       setSaveSuccess(true);
       // Update original state to match current state after successful save

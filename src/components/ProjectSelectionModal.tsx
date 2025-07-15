@@ -6,8 +6,7 @@ import { createProject, savePaletteToProject, savePalette, type Project } from '
 import { fuzzySearchWithScore } from '../utils/fuzzySearch';
 import { generatePaletteName } from '../utils/colorUtils';
 import type { ColorPalette } from '../utils/colorUtils';
-import { useCache } from '../contexts/CacheContext';
-import { projectPaletteCache } from '../utils/cacheUtils';
+import { useProjectCache } from '../contexts/ProjectCacheContext';
 
 interface ProjectSelectionModalProps {
   isOpen: boolean;
@@ -30,50 +29,37 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
   userToken,
   paletteConfig
 }) => {
-  const { projects: cachedProjects, refreshProjects } = useCache();
+  const { projects, isLoading, refreshProjects, setProjects } = useProjectCache();
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [displayedProjects, setDisplayedProjects] = useState<Project[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreatingProject, setIsCreatingProject] = useState(false);
   const [isSavingPalette, setIsSavingPalette] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [showAllProjects, setShowAllProjects] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   // Add a new state for the create+save step
   const [createSaveStep, setCreateSaveStep] = useState<'idle' | 'creating' | 'saving'>('idle');
 
-  // Convert cached projects to regular projects for compatibility
-  const projects = cachedProjects.map(p => ({
-    ...p,
-    palettes: p.palettes || []
-  }));
-
-  // Load projects from cache on modal open, but not after successful save
-  useEffect(() => {
-    if (isOpen && userToken && !successMessage && cachedProjects.length === 0) {
-      refreshProjects().catch(error => {
-        console.error('Error loading projects:', error);
-        setError(error instanceof Error ? error.message : 'Failed to load projects');
-      });
-    }
-  }, [isOpen, userToken, successMessage, cachedProjects.length, refreshProjects]);
+  // Default projects to an empty array for type safety
+  const safeProjects = projects ?? [];
 
   // Filter projects based on search query and update displayed projects
   useEffect(() => {
     if (!searchQuery.trim()) {
-      setFilteredProjects(projects);
+      setFilteredProjects(safeProjects);
       // Show only the 5 most recent projects when no search query
-      const recentProjects = projects.slice(0, 5);
+      const recentProjects = safeProjects.slice(0, 5);
       setDisplayedProjects(recentProjects);
-      setShowAllProjects(projects.length > 5);
+      setShowAllProjects(safeProjects.length > 5);
     } else {
-      const projectNames = projects.map(p => p.name);
+      const projectNames = safeProjects.map(p => p.name);
       const searchResults = fuzzySearchWithScore(searchQuery, projectNames);
       const matchedProjectNames = searchResults.map(result => result.item);
       
-      const filtered = projects.filter(project => 
+      const filtered = safeProjects.filter(project => 
         matchedProjectNames.includes(project.name)
       );
       
@@ -83,12 +69,10 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
     }
   }, [searchQuery, projects]);
 
-
-
   // Show success message and close modal after 2 seconds
   useEffect(() => {
-    if (successMessage && selectedProjectId && projects.length > 0) {
-      const project = projects.find(p => p.id === selectedProjectId);
+    if (successMessage && selectedProjectId && safeProjects.length > 0) {
+      const project = safeProjects.find(p => p.id === selectedProjectId);
       const timeout = setTimeout(() => {
         if (project) {
           onSave(project.id, project.name, true); // Pass suppressToast=true
@@ -97,11 +81,12 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
       }, 2000);
       return () => clearTimeout(timeout);
     }
-  }, [successMessage, selectedProjectId, projects, onSave, onClose]);
+  }, [successMessage, selectedProjectId, safeProjects, onSave, onClose]);
 
   useEffect(() => {
     if (isOpen) {
       setSuccessMessage(null);
+      setError(null);
     }
   }, [isOpen]);
 
@@ -124,14 +109,13 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
       // 1. Create the project
       const response = await createProject(searchQuery.trim(), '', userToken);
       if (response.success && response.project) {
-        // Add the new project to cache
-        projectPaletteCache.addProject(response.project);
-        
-        // Auto-select the newly created project
+        // Update the global cache
+        await refreshProjects();
+        setNewProjectName('');
+        setIsCreatingProject(false);
         setSelectedProjectId(response.project.id);
-
-        // 2. Save the palette to the new project
         setCreateSaveStep('saving');
+        // 2. Save the palette to the new project
         const colors = Object.entries(palette).map(([name, value]) => ({ name, value }));
         const config = paletteConfig || {
           hue: 265, // Default values if not provided
@@ -161,7 +145,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
       setIsCreatingProject(false);
       setIsSavingPalette(false);
     }
-  }, [searchQuery, userToken, projects, palette, paletteConfig]);
+  }, [searchQuery, userToken, palette, paletteConfig, refreshProjects]);
 
   const handleSaveToProject = useCallback(async () => {
     if (!selectedProjectId) {
@@ -192,7 +176,9 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
       // Then add the palette to the selected project
       const response = await savePaletteToProject(selectedProjectId, paletteResponse.id, userToken);
       if (response.success) {
-        const selectedProject = projects.find(p => p.id === selectedProjectId);
+        // Update the project's palettes in the global cache
+        setProjects(prev => prev ? prev.map(p => p.id === selectedProjectId ? { ...p, palettes: [...(p.palettes || []), paletteResponse.id] } : p) : null);
+        const selectedProject = safeProjects.find(p => p.id === selectedProjectId);
         setSuccessMessage(`Palette saved to project ${selectedProject?.name && selectedProject.name.length > 20 ? `${selectedProject.name.substring(0, 20)}...` : selectedProject?.name || 'Unknown Project'}!`);
         setSelectedProjectId(selectedProjectId);
         // The useEffect will handle calling onSave and onClose after 2 seconds
@@ -303,7 +289,12 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
 
             {/* Projects List */}
             <div className="mb-4 max-h-64 overflow-y-auto custom-scrollbar">
-              {projects.length === 0 && !searchQuery ? (
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: 'var(--primary)' }}></div>
+                  <span className="ml-2 text-sm" style={{ color: 'var(--text-muted)' }}>Loading projects...</span>
+                </div>
+              ) : displayedProjects.length === 0 && !searchQuery ? (
                 <div className="text-center py-8">
                   <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
                     No projects found. Create your first project to get started.
@@ -311,7 +302,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {projects.map((project) => (
+                  {displayedProjects.map((project) => (
                     <div
                       key={project.id}
                       className={`p-3 rounded-lg cursor-pointer transition-colors border ${
@@ -405,7 +396,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
               <Button
                 variant="secondary"
                 onClick={handleClose}
-                disabled={isCreatingProject || isSavingPalette}
+                disabled={isLoading || isSavingPalette || isCreatingProject}
               >
                 Cancel
               </Button>

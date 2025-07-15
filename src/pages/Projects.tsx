@@ -10,8 +10,7 @@ import type { Project } from '../config/api';
 import { getAuthToken } from '../utils/authUtils';
 import { fuzzySearchWithScore } from '../utils/fuzzySearch';
 import { useNavigate } from 'react-router-dom';
-import { useCache } from '../contexts/CacheContext';
-import { projectPaletteCache } from '../utils/cacheUtils';
+import { useProjectCache } from '../contexts/ProjectCacheContext';
 
 interface ProjectsProps {
   onNavigateBack: () => void;
@@ -30,11 +29,10 @@ export const Projects: React.FC<ProjectsProps> = ({
   onNavigateToProjects,
   userName
 }) => {
-  const { projects, refreshProjects, isLoading } = useCache();
+  const { projects, isLoading, error, refreshProjects, setProjects } = useProjectCache();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [projectName, setProjectName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
@@ -46,73 +44,45 @@ export const Projects: React.FC<ProjectsProps> = ({
 
   const navigate = useNavigate();
 
-  // Load projects from cache on component mount
+  // Filter and sort projects from context
   useEffect(() => {
-    if (projects.length === 0 && !isLoading) {
-      refreshProjects().catch(error => {
-        console.error('Error loading projects:', error);
-        setError(error instanceof Error ? error.message : 'Failed to load projects');
-      });
-    }
-  }, [projects.length, isLoading, refreshProjects]);
-
-  // Apply sorting when sort options change
-  useEffect(() => {
-    if (projects.length > 0) {
-      // Convert CachedProject to Project for compatibility
-      const projectList = projects.map(p => ({
-        ...p,
-        palettes: p.palettes || []
-      }));
-      
-      // Apply search filter first, then sort
+    if (projects && projects.length > 0) {
       if (!searchQuery.trim()) {
-        setFilteredProjects(sortProjects(projectList));
+        setFilteredProjects(sortProjects(projects));
       } else {
-        const projectNames = projectList.map(p => p.name);
+        const projectNames = projects.map(p => p.name);
         const searchResults = fuzzySearchWithScore(searchQuery, projectNames);
         const matchedProjectNames = searchResults.map(result => result.item);
-        
-        const filtered = projectList.filter(project => 
-          matchedProjectNames.includes(project.name)
-        );
-        
+        const filtered = projects.filter(project => matchedProjectNames.includes(project.name));
         setFilteredProjects(sortProjects(filtered));
       }
+    } else {
+      setFilteredProjects([]);
     }
   }, [sortBy, sortOrder, projects, searchQuery]);
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!projectName.trim()) return;
-
-    // Validate project name
     const trimmedName = projectName.trim();
     if (trimmedName.length > 100) {
       alert('Project name cannot exceed 100 characters');
       return;
     }
-
-    // Check for invalid characters (only allow letters, numbers, spaces, dots, hyphens, and underscores)
     const validNameRegex = /^[a-zA-Z0-9\s.\-_]+$/;
     if (!validNameRegex.test(trimmedName)) {
       alert('Project name can only contain letters, numbers, spaces, dots (.), hyphens (-), and underscores (_)');
       return;
     }
-
     setIsCreating(true);
     try {
       const token = getAuthToken();
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
+      if (!token) throw new Error('No authentication token found');
       const response = await createProject(trimmedName, '', token);
       if (response.success && response.project) {
         setProjectName('');
         setShowCreateForm(false);
-        // Add new project to cache
-        projectPaletteCache.addProject(response.project);
+        await refreshProjects(); // Update global cache
       } else {
         throw new Error(response.message || 'Failed to create project');
       }
@@ -137,18 +107,14 @@ export const Projects: React.FC<ProjectsProps> = ({
 
   const handleConfirmDelete = async () => {
     if (!projectToDelete) return;
-
     setIsDeleting(true);
     try {
       const token = getAuthToken();
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
+      if (!token) throw new Error('No authentication token found');
       const response = await deleteProject(projectToDelete.id, token);
       if (response.success) {
-        // Remove the project from cache
-        projectPaletteCache.removeProject(projectToDelete.id);
+        // Remove the project from the global cache
+        setProjects(prev => prev ? prev.filter(p => p.id !== projectToDelete.id) : null);
       } else {
         throw new Error(response.message || 'Failed to delete project');
       }
@@ -230,28 +196,17 @@ export const Projects: React.FC<ProjectsProps> = ({
     setSearchQuery(query);
     
     if (!query.trim()) {
-      // Convert CachedProject to Project for compatibility
-      const projectList = projects.map(p => ({
-        ...p,
-        palettes: p.palettes || []
-      }));
-      setFilteredProjects(sortProjects(projectList));
+      setFilteredProjects(sortProjects(projects || []));
       return;
     }
     
-    // Convert CachedProject to Project for compatibility
-    const projectList = projects.map(p => ({
-      ...p,
-      palettes: p.palettes || []
-    }));
-    
-    const projectNames = projectList.map(p => p.name);
+    const projectNames = projects?.map(p => p.name) || [];
     const searchResults = fuzzySearchWithScore(query, projectNames);
     const matchedProjectNames = searchResults.map(result => result.item);
     
-    const filtered = projectList.filter(project => 
+    const filtered = projects?.filter(project => 
       matchedProjectNames.includes(project.name)
-    );
+    ) || [];
     
     setFilteredProjects(sortProjects(filtered));
   };
@@ -267,12 +222,7 @@ export const Projects: React.FC<ProjectsProps> = ({
 
   const clearSearch = () => {
     setSearchQuery('');
-    // Convert CachedProject to Project for compatibility
-    const projectList = projects.map(p => ({
-      ...p,
-      palettes: p.palettes || []
-    }));
-    setFilteredProjects(sortProjects(projectList));
+    setFilteredProjects(sortProjects(projects || []));
   };
 
   // Show loading state
@@ -330,7 +280,7 @@ export const Projects: React.FC<ProjectsProps> = ({
               </CardHeader>
               <CardContent className="text-center">
                 <Button 
-                  onClick={() => refreshProjects()}
+                  onClick={refreshProjects}
                   className="w-full mb-3"
                 >
                   Try Again
@@ -353,7 +303,7 @@ export const Projects: React.FC<ProjectsProps> = ({
   }
 
   // Show create form if no projects exist
-  if (projects.length === 0 && !showCreateForm) {
+  if (projects?.length === 0 && !showCreateForm) {
     return (
       <div 
         className="min-h-screen"
@@ -584,7 +534,7 @@ export const Projects: React.FC<ProjectsProps> = ({
               </button>
             </div>
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              Showing {filteredProjects.length} of {projects.length}
+              Showing {filteredProjects.length} of {projects?.length || 0}
             </p>
             <Button onClick={() => setShowCreateForm(true)}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-2">

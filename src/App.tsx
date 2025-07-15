@@ -9,8 +9,8 @@ import { Projects } from './pages/Projects';
 import { ProjectDetails } from './pages/ProjectDetails';
 import { ManageAccount } from './pages/ManageAccount';
 import { loginUser, registerUser, logoutUser, type AuthUser, updateUserName } from './config/api';
-import { CacheProvider } from './contexts/CacheContext';
-import { useBackgroundLoader } from './hooks/useBackgroundLoader';
+import { ProjectCacheProvider } from './contexts/ProjectCacheContext';
+import { PaletteCacheProvider } from './contexts/PaletteCacheContext';
 
 function resetPaletteCssVars() {
   const root = document.documentElement;
@@ -25,9 +25,6 @@ function AppContent() {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Initialize background loader for caching
-  useBackgroundLoader(isLoggedIn);
 
   // Global theme persistence for all pages except /app (palette page)
   useEffect(() => {
@@ -109,7 +106,7 @@ function AppContent() {
       // Continue with logout even if API call fails
     }
     
-    // Clear local storage and cache
+    // Clear local storage
     localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
     
@@ -171,9 +168,8 @@ function AppContent() {
   };
 
   return (
-    <CacheProvider>
-      <PaletteManager>
-        <Routes>
+    <PaletteManager>
+      <Routes>
         <Route 
           path="/login" 
           element={
@@ -285,16 +281,19 @@ function AppContent() {
         {/* Redirect any unknown routes to home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      </PaletteManager>
-    </CacheProvider>
+    </PaletteManager>
   );
 }
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <ProjectCacheProvider>
+      <PaletteCacheProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </PaletteCacheProvider>
+    </ProjectCacheProvider>
   );
 }
 
