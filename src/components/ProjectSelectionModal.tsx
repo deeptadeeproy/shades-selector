@@ -152,6 +152,10 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({
         if (!saveResponse.success) {
           throw new Error(saveResponse.message || 'Failed to save palette to project');
         }
+        // Add the new palette ID to the new project's palettes in the cache
+        if (setProjects && response.project && paletteResponse && paletteResponse.success) {
+          setProjects(prev => prev ? prev.map(p => p.id === response.project!.id ? { ...p, palettes: [...(p.palettes || []), paletteResponse.id] } : p) : null);
+        }
         if (response.project) {
           setSuccessMessage(`Project ${response.project.name.length > 20 ? `${response.project.name.substring(0, 20)}...` : response.project.name} created and palette saved!`);
         }
