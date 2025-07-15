@@ -307,7 +307,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
           userName={userName}
           showProjectsButton={false}
         />
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: isLightTheme ? 'var(--bg-light)' : 'var(--bg)', color: 'var(--text)' }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'var(--bg)', color: 'var(--text)' }}>
           <LoadingModal isOpen={true} message="Loading project..." />
         </div>
       </>
@@ -622,7 +622,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
 
       {/* Loading Modal */}
       {isLoadingPalette && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: isLightTheme ? 'var(--bg-light)' : 'var(--bg)', color: 'var(--text)' }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'var(--bg)', color: 'var(--text)' }}>
           <LoadingModal 
             isOpen={true} 
             message="Loading palette..."
