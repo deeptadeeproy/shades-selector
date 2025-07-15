@@ -82,6 +82,7 @@ export const Navigation: React.FC<NavigationProps> = React.memo(({
   };
 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   return (
     <>
@@ -272,12 +273,21 @@ export const Navigation: React.FC<NavigationProps> = React.memo(({
       <ConfirmationModal
         isOpen={showLogoutConfirm}
         onClose={() => setShowLogoutConfirm(false)}
-        onConfirm={() => { setShowLogoutConfirm(false); onLogout(); }}
+        onConfirm={async () => {
+          setIsLoggingOut(true);
+          try {
+            await onLogout();
+          } finally {
+            setIsLoggingOut(false);
+            setShowLogoutConfirm(false);
+          }
+        }}
         title="Log Out"
         message="Are you sure you want to log out?"
         confirmText="Log Out"
         cancelText="Cancel"
         isDestructive={true}
+        isLoading={isLoggingOut}
       />
     </>
   );
