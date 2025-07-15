@@ -55,6 +55,15 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
   const [isLoadingPalette, setIsLoadingPalette] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const [isLightTheme, setIsLightTheme] = useState(() => typeof document !== 'undefined' && document.body.classList.contains('light'));
+
+  useEffect(() => {
+    const checkTheme = () => setIsLightTheme(document.body.classList.contains('light'));
+    checkTheme();
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   // Fetch project details on component mount
   useEffect(() => {
@@ -298,7 +307,9 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
           userName={userName}
           showProjectsButton={false}
         />
-        <LoadingModal isOpen={true} message="Loading project..." />
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: isLightTheme ? 'var(--bg-light)' : 'var(--bg)', color: 'var(--text)' }}>
+          <LoadingModal isOpen={true} message="Loading project..." />
+        </div>
       </>
     );
   }
@@ -610,10 +621,14 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
       />
 
       {/* Loading Modal */}
-      <LoadingModal 
-        isOpen={isLoadingPalette} 
-        message="Loading palette..."
-      />
+      {isLoadingPalette && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: isLightTheme ? 'var(--bg-light)' : 'var(--bg)', color: 'var(--text)' }}>
+          <LoadingModal 
+            isOpen={true} 
+            message="Loading palette..."
+          />
+        </div>
+      )}
     </div>
   );
 }; 
