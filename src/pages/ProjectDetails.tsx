@@ -437,8 +437,8 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
                     {project.name}
                   </h1>
                   <div style={{ minHeight: '20px', height: '20px', marginBottom: '8px' }}>
-                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                      Click on the Project name to edit
+                    <span className="text-xs" style={{ color: 'var(--text-muted)', marginLeft: '0.5rem' }}>
+                    Click the project name to rename
                     </span>
                   </div>
                 </>
