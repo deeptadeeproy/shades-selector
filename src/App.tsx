@@ -209,75 +209,73 @@ function AppContent() {
           } 
         />
         
-        <Route 
-          path="/app" 
-          element={
-            !isLoading && (isLoggedIn || isGuestMode) ? (
-              <ColorPaletteSelector 
-                isLoggedIn={isLoggedIn}
-                onNavigateToLogin={navigateToLogin}
-                onNavigateToSignup={navigateToSignup}
-                onLogout={handleLogout}
-                onNavigateToProjects={navigateToProjects}
-                userName={currentUser?.name}
-              />
-            ) : !isLoading ? (
-              <Navigate to="/" replace />
-            ) : null
-          } 
-        />
-        
-        <Route 
-          path="/projects" 
-          element={
-            !isLoading && isLoggedIn ? (
-              <Projects 
-                onNavigateBack={navigateToMain}
-                onNavigateToLogin={navigateToLogin}
-                onNavigateToSignup={navigateToSignup}
-                onLogout={handleLogout}
-                onNavigateToProjects={navigateToProjects}
-                userName={currentUser?.name}
-              />
-            ) : !isLoading ? (
-              <Navigate to="/" replace />
-            ) : null
-          } 
-        />
-        
-        <Route 
-          path="/project" 
-          element={
-            !isLoading && isLoggedIn ? (
-              <ProjectDetails 
-                onNavigateBack={navigateToProjects}
-                onNavigateToLogin={navigateToLogin}
-                onNavigateToSignup={navigateToSignup}
-                onLogout={handleLogout}
-                onNavigateToProjects={navigateToProjects}
-                userName={currentUser?.name}
-              />
-            ) : !isLoading ? (
-              <Navigate to="/" replace />
-            ) : null
-          } 
-        />
-
-        <Route 
-          path="/account" 
-          element={
-            !isLoading && isLoggedIn && currentUser ? (
-              <ManageAccount
-                user={currentUser}
-                onUpdateName={handleUpdateName}
-                onDeleteAccount={handleDeleteAccount}
-              />
-            ) : !isLoading ? (
-              <Navigate to="/" replace />
-            ) : null
-          }
-        />
-        
+        {/* Authenticated routes wrapped in providers */}
+        {(!isLoading && isLoggedIn) && (
+          <Route
+            path="/*"
+            element={
+              <ProjectCacheProvider>
+                <PaletteCacheProvider>
+                  <Routes>
+                    <Route 
+                      path="app" 
+                      element={
+                        <ColorPaletteSelector 
+                          isLoggedIn={isLoggedIn}
+                          onNavigateToLogin={navigateToLogin}
+                          onNavigateToSignup={navigateToSignup}
+                          onLogout={handleLogout}
+                          onNavigateToProjects={navigateToProjects}
+                          userName={currentUser?.name}
+                        />
+                      }
+                    />
+                    <Route 
+                      path="projects" 
+                      element={
+                        <Projects 
+                          onNavigateBack={navigateToMain}
+                          onNavigateToLogin={navigateToLogin}
+                          onNavigateToSignup={navigateToSignup}
+                          onLogout={handleLogout}
+                          onNavigateToProjects={navigateToProjects}
+                          userName={currentUser?.name}
+                        />
+                      }
+                    />
+                    <Route 
+                      path="project" 
+                      element={
+                        <ProjectDetails 
+                          onNavigateBack={navigateToProjects}
+                          onNavigateToLogin={navigateToLogin}
+                          onNavigateToSignup={navigateToSignup}
+                          onLogout={handleLogout}
+                          onNavigateToProjects={navigateToProjects}
+                          userName={currentUser?.name}
+                        />
+                      }
+                    />
+                    <Route 
+                      path="account" 
+                      element={
+                        currentUser ? (
+                          <ManageAccount
+                            user={currentUser}
+                            onUpdateName={handleUpdateName}
+                            onDeleteAccount={handleDeleteAccount}
+                          />
+                        ) : (
+                          <Navigate to="/" replace />
+                        )
+                      }
+                    />
+                  </Routes>
+                </PaletteCacheProvider>
+              </ProjectCacheProvider>
+            }
+          />
+        )}
         {/* Redirect any unknown routes to home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -287,13 +285,9 @@ function AppContent() {
 
 function App() {
   return (
-    <ProjectCacheProvider>
-      <PaletteCacheProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </PaletteCacheProvider>
-    </ProjectCacheProvider>
+    <Router>
+      <AppContent />
+    </Router>
   );
 }
 
